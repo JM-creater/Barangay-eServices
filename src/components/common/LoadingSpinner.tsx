@@ -1,10 +1,17 @@
 import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface LoadingSpinnerProps {
   message?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message = 'Loading...' }) => {
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  message = 'Loading...',
+  size = 'md',
+}) => {
+  const pixelSize = size === 'sm' ? 24 : size === 'lg' ? 48 : 36;
+
   return (
     <div
       style={{
@@ -12,21 +19,21 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message = 'Loadi
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '3rem 1rem',
-        gap: '1rem',
+        padding: size === 'sm' ? '1rem' : '2.5rem 1rem',
+        gap: '0.75rem',
       }}
     >
-      <div
-        style={{
-          width: '36px',
-          height: '36px',
-          border: '3px solid #DDE3EA',
-          borderTopColor: '#1E4E8C',
-          borderRadius: '50%',
-          animation: 'spin 0.8s linear infinite',
-        }}
+      <Loader2
+        className="animate-spin"
+        size={pixelSize}
+        color="#1E4E8C"
+        style={{ strokeWidth: 2.25 }}
       />
-      <p style={{ color: '#616E7C', fontSize: '0.925rem' }}>{message}</p>
+      {message && (
+        <p style={{ color: '#616E7C', fontSize: size === 'sm' ? '0.825rem' : '0.925rem', fontWeight: 500 }}>
+          {message}
+        </p>
+      )}
     </div>
   );
 };

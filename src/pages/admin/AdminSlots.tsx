@@ -252,7 +252,7 @@ export const AdminSlots: React.FC = () => {
               Configure appointment slot capacities, working hours, and non-working holidays
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {activeTab === 'slots' ? (
               <>
                 <Button variant="outline" size="sm" onClick={() => setShowBatchModal(true)}>
@@ -393,7 +393,7 @@ export const AdminSlots: React.FC = () => {
               <input type="date" required value={slotDate} onChange={(e) => setSlotDate(e.target.value)} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+            <div className="form-grid-2">
               <div>
                 <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.25rem' }}>
                   Start Time *
@@ -433,7 +433,7 @@ export const AdminSlots: React.FC = () => {
               Generates slots for Mondays through Fridays (8:00 AM - 5:00 PM with 12:00 lunch break).
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+            <div className="form-grid-2">
               <div>
                 <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 600, marginBottom: '0.25rem' }}>
                   Start Date *

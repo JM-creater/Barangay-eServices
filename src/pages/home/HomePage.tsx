@@ -76,9 +76,10 @@ export const HomePage: React.FC = () => {
 
           <h1
             style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '2.75rem',
-              fontWeight: 700,
+              fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+              fontSize: 'clamp(1.85rem, 4vw + 0.5rem, 2.75rem)',
+              fontWeight: 800,
+              letterSpacing: '-0.025em',
               lineHeight: 1.2,
               marginBottom: '1.25rem',
               color: '#ffffff',
@@ -112,8 +113,8 @@ export const HomePage: React.FC = () => {
               margin: '0 auto 2rem',
             }}
           >
-            <form onSubmit={handleTrackSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', flex: 1, paddingLeft: '0.75rem' }}>
+            <form onSubmit={handleTrackSubmit} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', flex: '1 1 220px', minWidth: 0, paddingLeft: '0.75rem' }}>
                 <Search size={20} color="#1E4E8C" />
                 <input
                   type="text"
@@ -125,10 +126,11 @@ export const HomePage: React.FC = () => {
                     boxShadow: 'none',
                     padding: '0.65rem 0.75rem',
                     fontSize: '0.95rem',
+                    width: '100%',
                   }}
                 />
               </div>
-              <Button type="submit" variant="primary">
+              <Button type="submit" variant="primary" style={{ flexShrink: 0 }}>
                 Track Application
               </Button>
             </form>
@@ -320,7 +322,10 @@ export const HomePage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ borderLeft: '1px solid #DDE3EA', paddingLeft: '1.5rem' }}>
+            <div
+              className="appearance-info-panel"
+              style={{ borderLeft: '1px solid #DDE3EA', paddingLeft: '1.5rem' }}
+            >
               <h4 style={{ fontSize: '1.1rem', color: '#1F2933', marginBottom: '0.75rem' }}>
                 Barangay Cansojong Hall
               </h4>
