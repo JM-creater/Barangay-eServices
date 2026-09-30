@@ -7,28 +7,28 @@ import org.springframework.util.StringUtils;
 @Component
 public class S3StorageProperties {
 
-    @Value("${app.storage.s3.endpoint:${AWS_ENDPOINT_URL:${AWS_ENDPOINT:https://t3.storageapi.dev}}}")
+    @Value("${app.storage.s3.endpoint}")
     private String endpoint;
 
-    @Value("${app.storage.s3.region:${AWS_REGION:${AWS_DEFAULT_REGION:auto}}}")
+    @Value("${app.storage.s3.region}")
     private String region;
 
-    @Value("${app.storage.s3.bucket:${AWS_BUCKET_NAME:${RAILWAY_STORAGE_BUCKET_NAME:barangay-eservice-bucket-aafoth}}}")
+    @Value("${app.storage.s3.bucket}")
     private String bucket;
 
-    @Value("${app.storage.s3.access-key-id:${AWS_ACCESS_KEY_ID:${RAILWAY_STORAGE_ACCESS_KEY_ID:}}}")
+    @Value("${app.storage.s3.access-key-id}")
     private String accessKeyId;
 
-    @Value("${app.storage.s3.secret-access-key:${AWS_SECRET_ACCESS_KEY:${RAILWAY_STORAGE_SECRET_ACCESS_KEY:}}}")
+    @Value("${app.storage.s3.secret-access-key}")
     private String secretAccessKey;
 
-    @Value("${app.storage.s3.prefix:barangay_requests/}")
+    @Value("${app.storage.s3.prefix}")
     private String prefix;
 
-    @Value("${app.storage.s3.path-style-access:false}")
+    @Value("${app.storage.s3.path-style-access}")
     private boolean pathStyleAccess;
 
-    @Value("${app.storage.s3.enabled:true}")
+    @Value("${app.storage.s3.enabled}")
     private boolean enabled;
 
     /**
