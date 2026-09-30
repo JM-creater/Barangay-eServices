@@ -83,6 +83,7 @@ com\barangay\eservices\config\DataInitializer.class
 com\barangay\eservices\modules\catalog\repository\ServiceRequirementRepository.class
 com\barangay\eservices\modules\notifications\service\NotificationService.class
 com\barangay\eservices\modules\users\dto\CreateStaffRequest.class
+com\barangay\eservices\controller\RootController.class
 com\barangay\eservices\modules\notifications\entity\NotificationType.class
 com\barangay\eservices\modules\requests\entity\RequestStatusHistory.class
 com\barangay\eservices\modules\appointments\dto\SlotDTO.class
