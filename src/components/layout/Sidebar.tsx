@@ -32,6 +32,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
+      className="app-sidebar"
       style={{
         width: '240px',
         backgroundColor: '#ffffff',
