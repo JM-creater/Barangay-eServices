@@ -1,0 +1,26 @@
+# Target build output
+target/
+*.jar
+*.war
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Git
+.git/
+.gitignore
+
+# Uploads and temporary test files
+uploads/
+*.log
+tmp/
+temp/
+
+# OS metadata
+.DS_Store
+Thumbs.db
