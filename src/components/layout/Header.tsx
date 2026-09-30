@@ -189,10 +189,10 @@ export const Header: React.FC = () => {
           <div>
             <div
               style={{
-                fontFamily: "'Playfair Display', serif",
+                fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
                 fontSize: '1.25rem',
                 fontWeight: 700,
-                letterSpacing: '0.02em',
+                letterSpacing: '-0.01em',
                 lineHeight: 1.1,
                 color: '#FFFFFF',
               }}
@@ -428,6 +428,7 @@ export const Header: React.FC = () => {
 
               {/* User Profile Info Capsule */}
               <div
+                className="header-desktop-actions"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -482,6 +483,7 @@ export const Header: React.FC = () => {
               {/* Logout Button */}
               <button
                 onClick={logout}
+                className="header-desktop-actions"
                 style={{
                   backgroundColor: 'rgba(214, 69, 69, 0.15)',
                   color: '#ffcaca',
@@ -513,7 +515,7 @@ export const Header: React.FC = () => {
               </button>
             </>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div className="header-desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <Link
                 to="/login"
                 style={{
