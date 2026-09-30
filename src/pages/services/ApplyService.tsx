@@ -231,7 +231,7 @@ export const ApplyService: React.FC = () => {
                 <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#475569', marginBottom: '0.5rem' }}>
                   Registered Resident Profile:
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', fontSize: '0.875rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.65rem', fontSize: '0.875rem' }}>
                   <div><strong>Name:</strong> {user?.fullName}</div>
                   <div><strong>Contact:</strong> {user?.contactNumber}</div>
                   <div><strong>Email:</strong> {user?.email}</div>

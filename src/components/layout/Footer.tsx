@@ -42,7 +42,7 @@ export const Footer: React.FC = () => {
               <ShieldCheck size={22} />
             </div>
             <div>
-              <h4 style={{ color: '#fff', fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>
+              <h4 style={{ color: '#fff', fontSize: '1.15rem', fontWeight: 700, fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif", letterSpacing: '-0.01em' }}>
                 Barangay Cansojong
               </h4>
               <p style={{ fontSize: '0.75rem', color: '#F2B600', fontWeight: 600 }}>Talisay City, Cebu</p>

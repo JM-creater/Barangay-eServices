@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': {
-          target: env.VITE_BACKEND_TARGET || 'https://barangay-eservice-server-production.up.railway.app',
+          target: env.VITE_BACKEND_TARGET || 'https://barangay-eservices-production.up.railway.app',
           changeOrigin: true,
           secure: false,
         },

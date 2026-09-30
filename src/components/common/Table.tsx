@@ -1,4 +1,5 @@
 import React from 'react';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface Column<T> {
   header: string;
@@ -24,8 +25,8 @@ export function Table<T>({
 }: TableProps<T>) {
   if (isLoading) {
     return (
-      <div className="table-container" style={{ padding: '3rem', textAlign: 'center' }}>
-        <p style={{ color: '#64748b' }}>Loading records...</p>
+      <div className="table-container" style={{ padding: '1.5rem', textAlign: 'center' }}>
+        <LoadingSpinner message="Loading records..." size="md" />
       </div>
     );
   }

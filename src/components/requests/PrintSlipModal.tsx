@@ -104,7 +104,7 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({
             srcDoc={slipHtml}
             style={{
               width: '100%',
-              height: '560px',
+              height: 'min(560px, 52vh)',
               border: 'none',
               borderRadius: '4px',
               backgroundColor: '#ffffff',
@@ -115,12 +115,12 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
             💡 <em>Tip: This official slip includes your appearance checklist, barcode, and triage validation sections.</em>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <Button variant="ghost" onClick={onClose}>
               Close
             </Button>
