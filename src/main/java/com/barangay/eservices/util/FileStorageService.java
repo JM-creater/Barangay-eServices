@@ -58,6 +58,8 @@ public class FileStorageService {
 
         if (s3Properties.isConfigured()) {
             initS3Client();
+        } else if (!s3Properties.isEnabled()) {
+            logger.info("Railway S3 storage is disabled (app.storage.s3.enabled=false). Operating in local storage mode at: {}", this.fileStorageLocation);
         } else {
             logger.info("Railway S3 credentials not configured. Operating in local storage mode at: {}", this.fileStorageLocation);
         }
@@ -87,6 +89,9 @@ public class FileStorageService {
     }
 
     public boolean isS3Active() {
+        if (!s3Properties.isEnabled()) {
+            return false;
+        }
         if (s3Client == null && s3Properties.isConfigured()) {
             initS3Client();
         }
