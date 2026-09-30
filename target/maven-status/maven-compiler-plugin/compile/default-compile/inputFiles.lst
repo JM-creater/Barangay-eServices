@@ -119,6 +119,7 @@ C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\processing\service\DocumentTemplateServiceImpl.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\audit\dto\AuditLogDTO.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\appointments\dto\CreateHolidayRequest.java
+C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\controller\RootController.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\config\JpaConfig.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\users\service\AuthService.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\config\SwaggerConfig.java
