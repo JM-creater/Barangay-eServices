@@ -90,8 +90,8 @@ export const PublicDocumentVerification: React.FC = () => {
             <label style={{ display: 'block', fontWeight: 600, fontSize: '0.95rem', color: '#1F2933', marginBottom: '0.5rem' }}>
               Enter Document Control Number or Release Reference Number:
             </label>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <div style={{ position: 'relative', flex: 1 }}>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', flex: '1 1 240px', minWidth: 0 }}>
                 <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#616E7C' }} />
                 <input
                   type="text"
@@ -101,7 +101,7 @@ export const PublicDocumentVerification: React.FC = () => {
                   style={{ paddingLeft: '2.5rem', width: '100%', height: '44px', fontSize: '1rem' }}
                 />
               </div>
-              <Button type="submit" variant="primary" isLoading={loading}>
+              <Button type="submit" variant="primary" isLoading={loading} style={{ flexShrink: 0 }}>
                 <Search size={18} /> Verify Authenticity
               </Button>
             </div>

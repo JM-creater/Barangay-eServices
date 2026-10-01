@@ -271,7 +271,7 @@ export const AdminSlots: React.FC = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div style={{ display: 'flex', borderBottom: '2px solid #DDE3EA', gap: '1.5rem' }}>
+        <div className="tabs-scroll-container">
           <button
             type="button"
             onClick={() => setActiveTab('slots')}
