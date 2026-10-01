@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /my-requests
+Disallow: /my-appointments
+Disallow: /requests/
+Disallow: /staff/
+Disallow: /admin/
+Disallow: /reset-password
+Disallow: /track/
+Disallow: /verify/
+Disallow: /services/*/apply
+
+Sitemap: https://barangay-eservices.pages.dev/sitemap.xml
