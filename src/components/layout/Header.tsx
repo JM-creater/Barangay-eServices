@@ -93,16 +93,16 @@ export const Header: React.FC = () => {
     ? isAdmin
       ? '/admin/dashboard'
       : isStaff || isApprover
-      ? '/staff/dashboard'
-      : '/dashboard'
+        ? '/staff/dashboard'
+        : '/dashboard'
     : '/';
 
   const portalSubtitle = isAuthenticated
     ? isAdmin
       ? 'Administrator Portal • Talisay City, Cebu'
       : isStaff || isApprover
-      ? 'Staff Operations • Talisay City, Cebu'
-      : 'Resident Portal • Talisay City, Cebu'
+        ? 'Staff Operations • Talisay City, Cebu'
+        : 'Resident Portal • Talisay City, Cebu'
     : 'e-Services Portal • Talisay City, Cebu';
 
   const navLinkStyle = (path: string) => {
@@ -154,11 +154,12 @@ export const Header: React.FC = () => {
         style={{
           maxWidth: '1280px',
           margin: '0 auto',
-          padding: '0.75rem 1.5rem',
+          padding: '0.65rem clamp(0.75rem, 3vw, 1.5rem)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '1rem',
+          gap: '0.75rem',
+          minWidth: 0,
         }}
       >
         {/* Brand */}
@@ -167,14 +168,15 @@ export const Header: React.FC = () => {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.75rem',
-            flexShrink: 0,
+            gap: '0.6rem',
+            minWidth: 0,
+            flexShrink: 1,
           }}
         >
           <div
             style={{
-              width: '42px',
-              height: '42px',
+              width: '38px',
+              height: '38px',
               borderRadius: '50%',
               backgroundColor: '#FFFFFF',
               display: 'flex',
@@ -184,31 +186,39 @@ export const Header: React.FC = () => {
               flexShrink: 0,
             }}
           >
-            <ShieldCheck size={28} color="#1E4E8C" />
+            <ShieldCheck size={24} color="#1E4E8C" />
           </div>
-          <div>
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
             <div
+              className='brand-title'
               style={{
                 fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-                fontSize: '1.25rem',
+                fontSize: 'clamp(1.05rem, 3.5vw, 1.25rem)',
                 fontWeight: 700,
                 letterSpacing: '-0.01em',
-                lineHeight: 1.1,
+                lineHeight: 1.15,
                 color: '#FFFFFF',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               Barangay Cansojong
             </div>
             <div
               style={{
-                fontSize: '0.725rem',
+                fontSize: '0.7rem',
                 color: '#F2B600',
-                letterSpacing: '0.05em',
+                letterSpacing: '0.04em',
                 textTransform: 'uppercase',
                 fontWeight: 600,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
-              {portalSubtitle}
+              <span className="brand-subtitle-full">{portalSubtitle}</span>
+              <span className="brand-subtitle-mobile">Talisay City, Cebu</span>
             </div>
           </div>
         </Link>
@@ -345,16 +355,16 @@ export const Header: React.FC = () => {
                   <div
                     style={{
                       position: 'absolute',
-                      right: 0,
+                      right: '-0.5rem',
                       marginTop: '0.65rem',
-                      width: '340px',
+                      width: 'min(340px, calc(100vw - 1.5rem))',
                       backgroundColor: '#FFFFFF',
                       color: '#1F2933',
                       borderRadius: '12px',
                       boxShadow: '0 10px 30px rgba(15, 42, 74, 0.25)',
                       border: '1px solid #DDE3EA',
                       zIndex: 100,
-                      maxHeight: '450px',
+                      maxHeight: 'min(450px, 75vh)',
                       overflowY: 'auto',
                     }}
                   >
@@ -588,7 +598,7 @@ export const Header: React.FC = () => {
                 Verify Document
               </Link>
               <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.1)', margin: '0.5rem 0' }} />
-              <Link to="/login" style={mobileNavLinkStyle('/login')}>
+              <Link to="/login" style={{ ...mobileNavLinkStyle('/login'), justifyContent: 'center'}}>
                 Log In
               </Link>
               <Link

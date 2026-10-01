@@ -46,7 +46,7 @@ export const StaffDashboard: React.FC = () => {
     reportService
       .getDashboardStats()
       .then((data) => setStats(data))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   };
 
@@ -338,26 +338,26 @@ export const StaffDashboard: React.FC = () => {
             </div>
 
             {/* Date Filters & CSV Download Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', width: '100%' }}>
+              <div style={{ flex: '1 1 140px' }}>
                 <label style={{ fontSize: '0.75rem', fontWeight: 600, display: 'block', color: '#1F2933' }}>From Date:</label>
                 <input
                   type="date"
                   value={financialStartDate}
                   onChange={(e) => setFinancialStartDate(e.target.value)}
-                  style={{ padding: '0.35rem 0.5rem', fontSize: '0.85rem' }}
+                  style={{ padding: '0.35rem 0.5rem', fontSize: '0.85rem', width: '100%' }}
                 />
               </div>
-              <div>
+              <div style={{ flex: '1 1 140px' }}>
                 <label style={{ fontSize: '0.75rem', fontWeight: 600, display: 'block', color: '#1F2933' }}>To Date:</label>
                 <input
                   type="date"
                   value={financialEndDate}
                   onChange={(e) => setFinancialEndDate(e.target.value)}
-                  style={{ padding: '0.35rem 0.5rem', fontSize: '0.85rem' }}
+                  style={{ padding: '0.35rem 0.5rem', fontSize: '0.85rem', width: '100%' }}
                 />
               </div>
-              <div style={{ alignSelf: 'flex-end', display: 'flex', gap: '0.5rem' }}>
+              <div style={{ alignSelf: 'flex-end', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <Button variant="outline" size="sm" onClick={fetchFinancialData} title="Reload financial metrics">
                   <RefreshCw size={14} />
                 </Button>
@@ -377,7 +377,7 @@ export const StaffDashboard: React.FC = () => {
                   isLoading={exportingRequests}
                   style={{ borderColor: '#1E4E8C', color: '#1E4E8C' }}
                 >
-                  <FileSpreadsheet size={14} /> Requests Log (CSV)
+                  <FileSpreadsheet size={14} /> Requests (CSV)
                 </Button>
               </div>
             </div>

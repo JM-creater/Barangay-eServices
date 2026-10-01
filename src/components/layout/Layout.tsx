@@ -24,6 +24,8 @@ export const Layout: React.FC<LayoutProps> = ({ children, showSidebar = false })
             flex: 1,
             backgroundColor: '#F5F7FA',
             maxWidth: displaySidebar ? '100%' : '1280px',
+            minWidth: 0,
+            width: '100%',
           }}
         >
           {children}

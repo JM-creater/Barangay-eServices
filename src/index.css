@@ -138,6 +138,7 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
+  min-width: 0;
 }
 
 .auth-page {
@@ -259,9 +260,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .table-container {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 100%;
 }
 
 .custom-table {
@@ -400,24 +404,44 @@ h1, h2, h3, h4, h5, h6 {
   flex-shrink: 0;
 }
 
-@media (max-width: 960px) {
-  .desktop-nav {
-    display: none !important;
-  }
-  .mobile-nav-toggle {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-  }
-  .app-sidebar {
-    display: none !important;
-  }
+.apply-stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  background-color: #ffffff;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  gap: 0.5rem;
 }
 
-@media (max-width: 768px) {
-  .user-desktop-name {
-    display: none !important;
-  }
+.tracking-stepper-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.5rem 0 0.5rem;
+}
+
+.tracking-stepper-inner {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  min-width: 520px;
+  gap: 0.5rem;
+}
+
+.tabs-scroll-container {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  gap: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+}
+
+.tabs-scroll-container button {
+  flex-shrink: 0;
 }
 
 .grid-2 {
@@ -444,33 +468,103 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0.75rem;
 }
 
+@media (max-width: 960px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  .mobile-nav-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .app-sidebar {
+    display: none !important;
+  }
+}
+
 @media (max-width: 900px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .grid-3 { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 768px) {
+  .user-desktop-name {
+    display: none !important;
+  }
+}
+
 @media (max-width: 640px) {
-  .grid-2, .grid-4 { grid-template-columns: 1fr; }
-  .main-content { padding: 1.25rem 0.85rem; }
-  .card { padding: 1.15rem; }
-  .modal-overlay { padding: 0.5rem; }
+  .grid-2, .grid-4 { 
+    grid-template-columns: 1fr; 
+  }
+  .main-content { 
+    padding: 1rem 0.75rem; 
+  }
+  .card { 
+    padding: 1rem; 
+    border-radius: var(--radius-md);
+  }
+  .modal-overlay { 
+    padding: 0.5rem; 
+  }
   .modal-content {
     padding: 1.25rem 1rem;
     max-height: 94vh;
     border-radius: var(--radius-md);
+    width: 100%;
   }
   .header-desktop-actions {
     display: none !important;
   }
   input, select, textarea {
-    font-size: 16px;
+    font-size: 16px; /* Prevents auto-zoom on iOS Safari */
   }
+  
+  /* Subtitle abbreviation on small mobile */
+  .brand-title {
+    font-size: 1.05rem !important;
+  }
+  .brand-subtitle-full {
+    display: none;
+  }
+  .brand-subtitle-mobile {
+    display: inline;
+  }
+
+  /* Apply Stepper on mobile */
+  .apply-stepper-container {
+    padding: 0.75rem 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+  .step-item:not(.step-active) .step-label {
+    display: none;
+  }
+  .step-label {
+    font-size: 0.775rem !important;
+  }
+
   .appearance-info-panel {
     border-left: none !important;
     border-top: 1px solid var(--border);
     padding-left: 0 !important;
     padding-top: 1.25rem !important;
     margin-top: 0.5rem;
+  }
+  
+  /* Buttons expand to full width inside form footers */
+  .mobile-stack-buttons {
+    flex-direction: column-reverse !important;
+    width: 100%;
+  }
+  .mobile-stack-buttons button,
+  .mobile-stack-buttons a {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .brand-subtitle-mobile {
+    display: none;
   }
 }
 

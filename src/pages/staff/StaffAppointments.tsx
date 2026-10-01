@@ -127,13 +127,13 @@ export const StaffAppointments: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Filter by Date:</label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              style={{ width: 'auto' }}
+              style={{ width: 'auto', minWidth: '140px' }}
             />
             <Button variant="outline" size="sm" onClick={fetchDailyAppointments}>
               <RefreshCw size={14} /> Refresh
