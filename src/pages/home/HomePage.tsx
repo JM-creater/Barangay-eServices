@@ -259,11 +259,16 @@ export const HomePage: React.FC = () => {
         ) : (
           <div className="grid-3">
             {services.slice(0, 6).map((service) => (
-              <Card key={service.id} style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ flex: 1 }}>
+              <Card
+                key={service.id}
+                style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+                bodyStyle={{ display: 'flex', flexDirection: 'column', flex: 1 }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                   <div
                     style={{
                       display: 'inline-block',
+                      alignSelf: 'flex-start',
                       fontSize: '0.75rem',
                       fontWeight: 700,
                       color: '#1E4E8C',
@@ -277,11 +282,30 @@ export const HomePage: React.FC = () => {
                     {service.serviceCode}
                   </div>
                   <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#1F2933' }}>{service.name}</h3>
-                  <p style={{ color: '#616E7C', fontSize: '0.875rem', lineHeight: 1.5, marginBottom: '1rem' }}>
+                  <p
+                    title={service.description}
+                    style={{
+                      color: '#616E7C',
+                      fontSize: '0.875rem',
+                      lineHeight: 1.5,
+                      marginBottom: '1rem',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
                     {service.description}
                   </p>
 
-                  <div style={{ borderTop: '1px solid #DDE3EA', paddingTop: '0.75rem', marginBottom: '1rem' }}>
+                  <div
+                    style={{
+                      borderTop: '1px solid #DDE3EA',
+                      paddingTop: '0.75rem',
+                      marginBottom: '1.25rem',
+                      marginTop: 'auto',
+                    }}
+                  >
                     <div style={{ fontSize: '0.8rem', color: '#1F2933', marginBottom: '0.35rem' }}>
                       <strong>Fee:</strong> {formatCurrency(service.fee)}
                     </div>
@@ -291,7 +315,7 @@ export const HomePage: React.FC = () => {
                   </div>
                 </div>
 
-                <Link to={`/services/${service.id}/apply`}>
+                <Link to={`/services/${service.id}/apply`} style={{ marginTop: 'auto' }}>
                   <Button variant="primary" style={{ width: '100%' }}>
                     Apply Online <ArrowRight size={16} />
                   </Button>
