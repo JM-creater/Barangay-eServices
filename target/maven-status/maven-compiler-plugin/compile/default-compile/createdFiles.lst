@@ -1,5 +1,7 @@
+com\barangay\eservices\security\ratelimit\RateLimitingProperties.class
 com\barangay\eservices\modules\notifications\repository\NotificationRepository.class
 com\barangay\eservices\modules\requests\controller\DocumentRequestController.class
+com\barangay\eservices\security\ratelimit\TokenBucket.class
 com\barangay\eservices\modules\audit\service\AuditLogService.class
 com\barangay\eservices\modules\requests\dto\FileDTO.class
 com\barangay\eservices\modules\notifications\dto\NotificationDTO.class
@@ -62,6 +64,7 @@ com\barangay\eservices\modules\appointments\controller\AdminHolidayController.cl
 com\barangay\eservices\security\CustomUserDetailsService.class
 com\barangay\eservices\modules\notifications\entity\Notification.class
 com\barangay\eservices\modules\reports\service\ReportServiceImpl.class
+com\barangay\eservices\security\ratelimit\RateLimitTier.class
 com\barangay\eservices\modules\catalog\repository\ServiceItemRepository.class
 com\barangay\eservices\modules\catalog\service\ServiceCatalogServiceImpl.class
 com\barangay\eservices\modules\users\dto\AuthRequest.class
@@ -71,11 +74,13 @@ com\barangay\eservices\config\S3StorageProperties.class
 com\barangay\eservices\modules\processing\dto\DocumentReleaseDTO.class
 com\barangay\eservices\modules\requests\dto\RequestStatusHistoryDTO.class
 com\barangay\eservices\modules\requests\dto\RequestResponseDTO.class
+com\barangay\eservices\security\ratelimit\RateLimiterService.class
 com\barangay\eservices\modules\users\controller\UserController.class
 com\barangay\eservices\exception\ApiException.class
 com\barangay\eservices\modules\reports\dto\FinancialReportDTO.class
 com\barangay\eservices\modules\users\dto\AuthResponse.class
 com\barangay\eservices\modules\users\dto\RegisterRequest.class
+com\barangay\eservices\security\ratelimit\RateLimitingFilter.class
 com\barangay\eservices\modules\requests\dto\StaffReviewActionDTO.class
 com\barangay\eservices\security\JwtTokenProvider.class
 com\barangay\eservices\dto\ErrorResponse.class
@@ -113,11 +118,14 @@ com\barangay\eservices\modules\appointments\service\AppointmentServiceImpl.class
 com\barangay\eservices\modules\appointments\controller\AdminAppointmentSlotController.class
 com\barangay\eservices\modules\processing\controller\DocumentProcessingController.class
 com\barangay\eservices\modules\appointments\entity\AppointmentSlot.class
+com\barangay\eservices\security\ratelimit\ClientIpResolver.class
 com\barangay\eservices\modules\appointments\service\HolidayService.class
 com\barangay\eservices\modules\audit\controller\AuditLogController.class
 com\barangay\eservices\modules\appointments\repository\HolidayRepository.class
 com\barangay\eservices\modules\appointments\mapper\AppointmentMapper.class
 com\barangay\eservices\modules\notifications\service\EmailService.class
+com\barangay\eservices\security\ratelimit\RateLimiterService$1.class
+com\barangay\eservices\security\ratelimit\RateLimitResult.class
 com\barangay\eservices\modules\notifications\service\EmailServiceImpl.class
 com\barangay\eservices\modules\requests\dto\CorrectionResubmitDTO.class
 com\barangay\eservices\exception\ResourceNotFoundException.class
@@ -125,6 +133,7 @@ com\barangay\eservices\modules\catalog\dto\RequirementDTO.class
 com\barangay\eservices\modules\catalog\entity\ServiceItem.class
 com\barangay\eservices\util\FileStorageService.class
 com\barangay\eservices\modules\appointments\dto\RescheduleRequest.class
+com\barangay\eservices\config\RateLimitingConfig.class
 com\barangay\eservices\modules\users\entity\User.class
 com\barangay\eservices\config\JpaConfig.class
 com\barangay\eservices\modules\audit\dto\AuditLogDTO.class

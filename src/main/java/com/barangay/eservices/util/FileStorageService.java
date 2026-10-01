@@ -46,7 +46,7 @@ public class FileStorageService {
 
     public FileStorageService(
             S3StorageProperties s3Properties,
-            @Value("${file.upload-dir:./uploads/barangay_requests}") String uploadDir) {
+            @Value("${file.upload-dir}") String uploadDir) {
         this.s3Properties = s3Properties;
         this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
 
