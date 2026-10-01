@@ -7,6 +7,8 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
+  bodyStyle?: React.CSSProperties;
+  bodyClassName?: string;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -16,6 +18,8 @@ export const Card: React.FC<CardProps> = ({
   children,
   className = '',
   style,
+  bodyStyle,
+  bodyClassName = '',
 }) => {
   return (
     <div className={`card ${className}`} style={style}>
@@ -32,7 +36,9 @@ export const Card: React.FC<CardProps> = ({
           {actions && <div>{actions}</div>}
         </div>
       )}
-      <div className="card-body">{children}</div>
+      <div className={`card-body ${bodyClassName}`.trim()} style={bodyStyle}>
+        {children}
+      </div>
     </div>
   );
 };
