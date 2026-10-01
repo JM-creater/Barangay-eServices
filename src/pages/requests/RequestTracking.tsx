@@ -109,6 +109,7 @@ export const RequestTracking: React.FC = () => {
               gap: '0.5rem',
               maxWidth: '500px',
               margin: '1.5rem auto 0',
+              flexWrap: 'wrap',
             }}
           >
             <input
@@ -116,9 +117,9 @@ export const RequestTracking: React.FC = () => {
               placeholder="e.g. BC-2026-A1B2C3"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              style={{ fontWeight: 600, textTransform: 'uppercase' }}
+              style={{ fontWeight: 600, textTransform: 'uppercase', flex: '1 1 200px' }}
             />
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="primary" style={{ flexShrink: 0 }}>
               <Search size={18} /> Track
             </Button>
           </form>
@@ -191,8 +192,8 @@ export const RequestTracking: React.FC = () => {
               </div>
 
               {/* Progress Flow */}
-              <div style={{ padding: '1.5rem 0 0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
+              <div className="tracking-stepper-wrapper">
+                <div className="tracking-stepper-inner">
                   {steps.map((st) => {
                     const status = getStepStatus(st.key, request.currentStatus);
                     const isDone = status === 'complete';
@@ -208,6 +209,8 @@ export const RequestTracking: React.FC = () => {
                           alignItems: 'center',
                           flex: 1,
                           textAlign: 'center',
+                          minWidth: '80px',
+                          padding: '0 4px',
                         }}
                       >
                         <div
@@ -224,11 +227,19 @@ export const RequestTracking: React.FC = () => {
                             fontWeight: 700,
                             marginBottom: '0.5rem',
                             zIndex: 2,
+                            flexShrink: 0,
                           }}
                         >
                           {isDone ? '✓' : isWarn ? '!' : isErr ? '✕' : ''}
                         </div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: isDone ? '#2E8B57' : isWarn ? '#b48400' : isErr ? '#D64545' : '#616E7C' }}>
+                        <span
+                          style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            lineHeight: 1.25,
+                            color: isDone ? '#2E8B57' : isWarn ? '#b48400' : isErr ? '#D64545' : '#616E7C',
+                          }}
+                        >
                           {st.label}
                         </span>
                       </div>

@@ -56,7 +56,7 @@ export const ServicesCatalog: React.FC = () => {
             {services.map((service) => (
               <Card key={service.id} style={{ borderLeft: '5px solid #1E4E8C' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div style={{ flex: 1, minWidth: '280px' }}>
+                  <div style={{ flex: '1 1 260px', minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                       <span
                         style={{
@@ -157,7 +157,7 @@ export const ServicesCatalog: React.FC = () => {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: '180px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: '1 1 160px', minWidth: '140px', width: '100%' }}>
                     <Link to={`/services/${service.id}/apply`}>
                       <Button variant="primary" style={{ width: '100%' }}>
                         Apply Now <ArrowRight size={16} />

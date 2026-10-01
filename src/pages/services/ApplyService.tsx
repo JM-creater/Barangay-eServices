@@ -80,7 +80,7 @@ export const ApplyService: React.FC = () => {
           setSlots(data);
           setSelectedSlot(null);
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setLoadingSlots(false));
     }
   }, [selectedDate]);
@@ -120,7 +120,7 @@ export const ApplyService: React.FC = () => {
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
-          'Failed to submit application. The selected slot may have just become full. Please choose another slot.'
+        'Failed to submit application. The selected slot may have just become full. Please choose another slot.'
       );
       setStep(3); // Go back to slot selection
     } finally {
@@ -146,55 +146,52 @@ export const ApplyService: React.FC = () => {
         </div>
 
         {/* Stepper Progress */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '2rem',
-            backgroundColor: '#ffffff',
-            padding: '1rem 1.5rem',
-            borderRadius: '12px',
-            border: '1px solid #DDE3EA',
-          }}
-        >
+        <div className="apply-stepper-container">
           {[
             { num: 1, label: 'Applicant Details' },
             { num: 2, label: 'Document Uploads' },
             { num: 3, label: 'Appointment Slot' },
             { num: 4, label: 'Review & Submit' },
-          ].map((item) => (
-            <div
-              key={item.num}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                opacity: step >= item.num ? 1 : 0.45,
-                color: step === item.num ? '#1E4E8C' : step > item.num ? '#2E8B57' : '#616E7C',
-                fontWeight: step === item.num ? 700 : 500,
-                fontSize: '0.85rem',
-              }}
-            >
+          ].map((item) => {
+            const isActive = step === item.num;
+            const isCompleted = step > item.num;
+            return (
               <div
+                key={item.num}
+                className={`step-item ${isActive ? 'step-active' : ''}`}
                 style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  backgroundColor: step === item.num ? '#1E4E8C' : step > item.num ? '#2E8B57' : '#DDE3EA',
-                  color: step >= item.num ? '#ffffff' : '#616E7C',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
+                  gap: '0.45rem',
+                  opacity: step >= item.num ? 1 : 0.45,
+                  color: isActive ? '#1E4E8C' : isCompleted ? '#2E8B57' : '#616E7C',
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: '0.85rem',
                 }}
               >
-                {step > item.num ? '✓' : item.num}
+                <div
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    backgroundColor: isActive ? '#1E4E8C' : isCompleted ? '#2E8B57' : '#DDE3EA',
+                    color: step >= item.num ? '#ffffff' : '#616E7C',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    flexShrink: 0,
+                  }}
+                >
+                  {isCompleted ? '✓' : item.num}
+                </div>
+                <span className="step-label" style={{ whiteSpace: 'nowrap' }}>
+                  {item.label}
+                </span>
               </div>
-              <span className="step-label">{item.label}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {error && (
@@ -264,11 +261,21 @@ export const ApplyService: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  marginTop: '1rem',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem'
+                }}
+              >
                 <Button
                   variant="primary"
                   disabled={!purpose.trim()}
                   onClick={() => setStep(2)}
+                  style={{ width: 'auto' }}
+                  className="mobile-full-width"
                 >
                   Proceed to Document Uploads <ArrowRight size={16} />
                 </Button>
@@ -327,7 +334,15 @@ export const ApplyService: React.FC = () => {
                 );
               })}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: '1rem',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem'
+                }}
+              >
                 <Button variant="outline" onClick={() => setStep(1)}>
                   <ArrowLeft size={16} /> Back
                 </Button>
@@ -366,7 +381,7 @@ export const ApplyService: React.FC = () => {
                   value={selectedDate}
                   min={new Date().toISOString().split('T')[0]}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  style={{ maxWidth: '280px' }}
+                  style={{ width: '100%', maxWidth: '280px' }}
                 />
               </div>
 
@@ -415,7 +430,7 @@ export const ApplyService: React.FC = () => {
                 )}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <Button variant="outline" onClick={() => setStep(2)}>
                   <ArrowLeft size={16} /> Back
                 </Button>
@@ -463,7 +478,15 @@ export const ApplyService: React.FC = () => {
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  marginTop: '1rem', 
+                  flexWrap: 'wrap', 
+                  gap: '0.75rem' 
+                }}
+              >
                 <Button variant="outline" onClick={() => setStep(3)}>
                   <ArrowLeft size={16} /> Back
                 </Button>
