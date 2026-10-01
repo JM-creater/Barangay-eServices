@@ -408,7 +408,7 @@ export const StaffRequestReview: React.FC = () => {
             {request.files.length === 0 ? (
               <p style={{ color: '#616E7C', fontSize: '0.875rem' }}>No attachments uploaded by resident.</p>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))', gap: '1rem' }}>
                 {request.files.map((file) => (
                   <div
                     key={file.id}
@@ -725,7 +725,7 @@ export const StaffRequestReview: React.FC = () => {
             <LoadingSpinner message="Rendering official document template..." />
           ) : previewData ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F2A4A' }}>{previewData.serviceName}</div>
                   <div style={{ fontSize: '0.8rem', color: '#616E7C' }}>
@@ -754,7 +754,7 @@ export const StaffRequestReview: React.FC = () => {
                   srcDoc={previewData.renderedHtml}
                   style={{
                     width: '100%',
-                    height: '600px',
+                    height: 'min(500px, 48vh)',
                     border: 'none',
                   }}
                 />

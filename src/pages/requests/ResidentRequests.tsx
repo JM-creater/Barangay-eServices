@@ -87,7 +87,7 @@ export const ResidentRequests: React.FC = () => {
 
   return (
     <Layout showSidebar>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', color: '#0F2A4A' }}>My Submitted Requests</h1>
           <p style={{ color: '#616E7C', fontSize: '0.875rem' }}>
