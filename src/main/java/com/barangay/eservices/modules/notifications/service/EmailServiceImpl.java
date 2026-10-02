@@ -10,10 +10,10 @@ public class EmailServiceImpl implements EmailService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
 
-    @Value("${app.mail.enabled:false}")
+    @Value("${app.mail.enabled}")
     private boolean mailEnabled;
 
-    @Value("${app.mail.from:no-reply@cansojong.talisaycity.gov.ph}")
+    @Value("${app.mail.from}")
     private String mailFrom;
 
     @Override
