@@ -9,6 +9,7 @@ C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\ratelimit\RateLimiterService.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\catalog\controller\AdminServiceController.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\requests\entity\DocumentRequest.java
+C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\crypto\EncryptionProperties.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\notifications\entity\NotificationChannel.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\catalog\controller\ServiceCatalogController.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\processing\dto\DocumentReleaseRequest.java
@@ -53,6 +54,7 @@ C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\notifications\mapper\NotificationMapper.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\util\S3Resource.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\users\entity\User.java
+C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\crypto\NoEncryption.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\notifications\entity\NotificationType.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\notifications\service\EmailServiceImpl.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\JwtAuthenticationEntryPoint.java
@@ -76,12 +78,14 @@ C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\audit\service\AuditLogServiceImpl.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\reports\controller\ReportController.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\requests\mapper\RequestMapper.java
+C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\crypto\EncryptedResponseBodyAdvice.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\catalog\mapper\CatalogMapper.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\catalog\dto\RequirementDTO.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\users\repository\PasswordResetTokenRepository.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\reports\dto\DashboardStatsDTO.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\exception\BadRequestException.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\ratelimit\RateLimitTier.java
+C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\crypto\EncryptedEnvelope.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\catalog\repository\ServiceItemRepository.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\appointments\scheduler\AppointmentScheduler.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\processing\service\DocumentProcessingServiceImpl.java
@@ -149,4 +153,5 @@ C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\processing\dto\DocumentVerificationDTO.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\users\dto\UserDTO.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\modules\catalog\dto\ServiceDTO.java
+C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\crypto\CryptoUtil.java
 C:\Users\User\OneDrive\Desktop\Projects\Barangay eService\backend\src\main\java\com\barangay\eservices\security\SecurityUtil.java
