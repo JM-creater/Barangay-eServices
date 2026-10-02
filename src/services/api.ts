@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { decryptPayload, isEncryptedEnvelop } from './cryptoService';
 
 /**
  * Returns the normalized base URL for the backend API.
@@ -36,8 +37,27 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  async (response) => {
+    if (isEncryptedEnvelop(response.data)) {
+      try {
+        const decryptedJson = await decryptPayload(response.data);
+        response.data = JSON.parse(decryptedJson);
+      } catch (error) {
+        console.error('Failed to decrypt response payload from server:', error);
+        return Promise.reject(new Error('Decryption failure for response payload'));
+      }
+    }
+    return response;
+  },
+  async (error) => {
+    if (error.response && isEncryptedEnvelop(error.response.data)) {
+      try {
+        const decryptedJson = await decryptPayload(error.response.data);
+        error.response.data = JSON.parse(decryptedJson);
+      } catch (decryptErr) {
+        console.warn('Failed to decrypt error response payload:', decryptErr);
+      }
+    }
     if (error.response && error.response.status === 401) {
       // Don't auto-redirect on login or track requests
       const isAuthPath = window.location.pathname.includes('/login') || window.location.pathname.includes('/register') || window.location.pathname.includes('/track');
