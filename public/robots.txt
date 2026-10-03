@@ -11,4 +11,4 @@ Disallow: /track/
 Disallow: /verify/
 Disallow: /services/*/apply
 
-Sitemap: https://barangay-eservices.pages.dev/sitemap.xml
+Sitemap: https://www.barangay-eservices.work.gd/sitemap.xml
