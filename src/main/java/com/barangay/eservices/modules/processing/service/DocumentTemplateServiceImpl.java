@@ -11,6 +11,7 @@ import com.barangay.eservices.modules.users.entity.User;
 import com.barangay.eservices.modules.users.repository.UserRepository;
 import com.barangay.eservices.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,9 @@ import java.util.Optional;
 @Service
 public class DocumentTemplateServiceImpl implements DocumentTemplateService {
 
+    @Value("${app.frontend.url}")
+    private String clientUrl;
+
     @Autowired
     private DocumentRequestRepository requestRepository;
 
@@ -31,6 +35,13 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService {
 
     @Autowired
     private UserRepository userRepository;
+
+    private String buildVerificationUrl(String documentNumber) {
+        String baseUrl = (clientUrl != null && !clientUrl.isBlank())
+                ? clientUrl.trim().replace("/+$", "")
+                : "http://localhost:5173";
+        return baseUrl + "/verify?control=" + (documentNumber != null ? documentNumber : "");
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -78,7 +89,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService {
         String address = request.getResident().getAddress() != null ? request.getResident().getAddress() : "Barangay Cansojong, Talisay City, Cebu";
         String purpose = request.getPurpose() != null ? request.getPurpose() : "General Reference";
 
-        String verificationUrl = "http://localhost:5173/verify?control=" + docNumber;
+        String verificationUrl = buildVerificationUrl(docNumber);
 
         DocumentPreviewDTO dto = new DocumentPreviewDTO();
         dto.setRequestId(request.getId());
