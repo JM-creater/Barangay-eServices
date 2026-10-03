@@ -8,8 +8,8 @@ import com.barangay.eservices.modules.requests.dto.RequestResponseDTO;
 import com.barangay.eservices.modules.requests.service.DocumentRequestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.barangay.eservices.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
@@ -45,7 +45,7 @@ public class DocumentRequestController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PaginationUtil.createSafePageRequest(page, PaginationUtil.sanitizeSize(size, 10), Sort.by("createdAt").descending());
         PaginatedResponse<RequestResponseDTO> response = requestService.getMyRequests(pageable);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }

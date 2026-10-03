@@ -23,6 +23,11 @@ public class PublicDocumentVerificationController {
     @GetMapping("/verify-document/{controlNumber}")
     @Operation(summary = "Public verification of official barangay certificate or clearance by control number or release reference")
     public ResponseEntity<ApiResponse<DocumentVerificationDTO>> verifyDocument(@PathVariable String controlNumber) {
+        if (controlNumber == null || controlNumber.trim().isEmpty() || controlNumber.trim().length() > 60) {
+            return ResponseEntity.ok(ApiResponse.ok("Verification lookup completed", 
+                    DocumentVerificationDTO.notFound(controlNumber != null ? controlNumber.trim() : "")));
+        }
+
         String query = controlNumber.trim();
 
         // 1. Search by issuedDocumentNumber

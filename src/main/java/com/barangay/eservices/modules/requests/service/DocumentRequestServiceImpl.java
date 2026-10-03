@@ -28,6 +28,7 @@ import com.barangay.eservices.security.SecurityUtil;
 import com.barangay.eservices.util.DateUtil;
 import com.barangay.eservices.util.FileStorageService;
 import com.barangay.eservices.util.ReferenceGenerator;
+import com.barangay.eservices.util.SqlSearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -189,7 +190,8 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
             enumStatus = RequestStatus.valueOf(status.toUpperCase());
         }
 
-        Page<DocumentRequest> page = requestRepository.findFilteredRequests(enumStatus, serviceId, search, pageable);
+        String sanitizedSearch = SqlSearchUtil.escapeLikeWildcards(search);
+        Page<DocumentRequest> page = requestRepository.findFilteredRequests(enumStatus, serviceId, sanitizedSearch, pageable);
         List<RequestResponseDTO> dtoList = page.getContent().stream()
                 .map(RequestMapper::toResponseDTO)
                 .collect(Collectors.toList());

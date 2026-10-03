@@ -10,8 +10,8 @@ import com.barangay.eservices.modules.appointments.service.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import com.barangay.eservices.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -70,7 +70,7 @@ public class AppointmentController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PaginationUtil.createSafePageRequest(page, size, null);
         PaginatedResponse<AppointmentDTO> response = appointmentService.getAppointments(date, status, pageable);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }

@@ -28,9 +28,9 @@ public interface DocumentRequestRepository extends JpaRepository<DocumentRequest
     @Query("SELECT r FROM DocumentRequest r WHERE " +
            "(:status IS NULL OR r.currentStatus = :status) AND " +
            "(:serviceId IS NULL OR r.serviceItem.id = :serviceId) AND " +
-           "(:search IS NULL OR LOWER(r.referenceNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(r.resident.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(r.resident.lastName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "(:search IS NULL OR LOWER(r.referenceNumber) LIKE LOWER(CONCAT('%', :search, '%')) ESCAPE '\\' OR " +
+           "LOWER(r.resident.firstName) LIKE LOWER(CONCAT('%', :search, '%')) ESCAPE '\\' OR " +
+           "LOWER(r.resident.lastName) LIKE LOWER(CONCAT('%', :search, '%')) ESCAPE '\\') " +
            "ORDER BY r.createdAt DESC")
     Page<DocumentRequest> findFilteredRequests(@Param("status") RequestStatus status,
                                                @Param("serviceId") Long serviceId,
