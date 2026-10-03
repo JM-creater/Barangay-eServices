@@ -10,8 +10,8 @@ import com.barangay.eservices.modules.requests.dto.RequestResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import com.barangay.eservices.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -81,7 +81,7 @@ public class DocumentProcessingController {
     public ResponseEntity<ApiResponse<PaginatedResponse<DocumentReleaseDTO>>> getAllReleases(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PaginationUtil.createSafePageRequest(page, size, null);
         PaginatedResponse<DocumentReleaseDTO> response = processingService.getAllReleases(pageable);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }

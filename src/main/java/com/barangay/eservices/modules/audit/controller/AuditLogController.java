@@ -4,10 +4,10 @@ import com.barangay.eservices.dto.ApiResponse;
 import com.barangay.eservices.dto.PaginatedResponse;
 import com.barangay.eservices.modules.audit.dto.AuditLogDTO;
 import com.barangay.eservices.modules.audit.service.AuditLogService;
+import com.barangay.eservices.util.PaginationUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +34,7 @@ public class AuditLogController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "15") int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PaginationUtil.createSafePageRequest(page, size, Sort.by("createdAt").descending());
         PaginatedResponse<AuditLogDTO> response = auditLogService.getAuditLogs(entityName, action, pageable);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }

@@ -13,6 +13,7 @@ import com.barangay.eservices.modules.users.mapper.UserMapper;
 import com.barangay.eservices.modules.users.repository.RoleRepository;
 import com.barangay.eservices.modules.users.repository.UserRepository;
 import com.barangay.eservices.security.SecurityUtil;
+import com.barangay.eservices.util.SqlSearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +49,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public PaginatedResponse<UserDTO> getAllUsers(String search, Pageable pageable) {
-        Page<User> page = userRepository.searchUsers(search, pageable);
+        String sanitizedSearch = SqlSearchUtil.escapeLikeWildcards(search);
+        Page<User> page = userRepository.searchUsers(sanitizedSearch, pageable);
         List<UserDTO> dtoList = page.getContent().stream()
                 .map(UserMapper::toDTO)
                 .collect(Collectors.toList());
