@@ -7,9 +7,9 @@ import com.barangay.eservices.modules.users.dto.UserDTO;
 import com.barangay.eservices.modules.users.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.barangay.eservices.util.PaginationUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class AdminUserController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PaginationUtil.createSafePageRequest(page, PaginationUtil.sanitizeSize(size, 10), Sort.by("createdAt").descending());
         PaginatedResponse<UserDTO> response = userService.getAllUsers(search, pageable);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }

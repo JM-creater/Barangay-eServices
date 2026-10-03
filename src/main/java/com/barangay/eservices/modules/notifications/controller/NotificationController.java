@@ -6,8 +6,8 @@ import com.barangay.eservices.modules.notifications.dto.NotificationDTO;
 import com.barangay.eservices.modules.notifications.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import com.barangay.eservices.util.PaginationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +35,7 @@ public class NotificationController {
     public ResponseEntity<ApiResponse<PaginatedResponse<NotificationDTO>>> getNotificationsPaginated(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PaginationUtil.createSafePageRequest(page, PaginationUtil.sanitizeSize(size, 10), null);
         PaginatedResponse<NotificationDTO> response = notificationService.getMyNotificationsPaginated(pageable);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
