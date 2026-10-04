@@ -42,3 +42,8 @@ export interface RegisterPayload {
   city?: string;
   province?: string;
 }
+
+export interface TokenValidationResult {
+  valid: boolean;
+  message: string;
+}
