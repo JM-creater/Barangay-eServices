@@ -9,6 +9,7 @@ import com.barangay.eservices.modules.users.dto.AuthRequest;
 import com.barangay.eservices.modules.users.dto.AuthResponse;
 import com.barangay.eservices.modules.users.dto.ChangePasswordRequest;
 import com.barangay.eservices.modules.users.dto.RegisterRequest;
+import com.barangay.eservices.modules.users.dto.TokenValidationResponse;
 import com.barangay.eservices.modules.users.dto.UserDTO;
 import com.barangay.eservices.modules.users.entity.Role;
 import com.barangay.eservices.modules.users.entity.RoleName;
@@ -235,5 +236,34 @@ public class AuthServiceImpl implements AuthService {
 
         auditLogService.logAction(user, "PASSWORD_RESET_COMPLETED", "User", user.getId().toString(),
                 "Password reset completed with token");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TokenValidationResponse validateResetToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return TokenValidationResponse.invalid("Password reset token is missing. Please use the link sent to your email.");
+        }
+
+        String trimmedToken = token.trim();
+
+        Optional<PasswordResetToken> resetToken = passwordResetTokenRepository.findByToken(trimmedToken);
+
+        if (resetToken.isEmpty()) {
+            return TokenValidationResponse.invalid("This password reset link is invalid, has expired, or has already been used.");
+        }
+
+        PasswordResetToken resetTokenOpt = resetToken.get();
+
+        if (Boolean.TRUE.equals(resetTokenOpt.getUsed())) {
+            return TokenValidationResponse.invalid("This password reset link has already been used. Please request a new link.");
+        }
+
+        // Check if token exceeded its expiration window (2 hours)
+        if (resetTokenOpt.isExpired()) {
+            return TokenValidationResponse.invalid("This password reset link has expired. For your security, reset links are valid for 2 hours.");
+        }
+
+        return TokenValidationResponse.valid();
     }
 }
