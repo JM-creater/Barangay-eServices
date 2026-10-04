@@ -1,6 +1,6 @@
 import api from './api';
 import { ApiResponse } from '../types/common';
-import { AuthResponse, LoginPayload, RegisterPayload, User } from '../types/User';
+import { AuthResponse, LoginPayload, RegisterPayload, TokenValidationResult, User } from '../types/User';
 
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
@@ -39,4 +39,11 @@ export const authService = {
     });
     return response.data.message;
   },
+
+  async validateResetToken(token: string): Promise<TokenValidationResult> {
+    const response = await api.get<ApiResponse<TokenValidationResult>>('/auth/validate-reset-token', {
+      params: { token },
+    });
+    return response.data.data;
+  }
 };
