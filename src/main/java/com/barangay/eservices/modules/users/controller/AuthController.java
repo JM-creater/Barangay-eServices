@@ -5,6 +5,7 @@ import com.barangay.eservices.modules.users.dto.AuthRequest;
 import com.barangay.eservices.modules.users.dto.AuthResponse;
 import com.barangay.eservices.modules.users.dto.ChangePasswordRequest;
 import com.barangay.eservices.modules.users.dto.RegisterRequest;
+import com.barangay.eservices.modules.users.dto.TokenValidationResponse;
 import com.barangay.eservices.modules.users.dto.UserDTO;
 import com.barangay.eservices.modules.users.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,5 +63,13 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody com.barangay.eservices.modules.users.dto.ResetPasswordRequest request) {
         authService.resetPassword(request);
         return ResponseEntity.ok(ApiResponse.ok("Password has been reset successfully. You may now log in with your new password.", null));
+    }
+
+    @GetMapping("/validate-reset-token")
+    @Operation(summary = "Proactively validate password reset token status")
+    public ResponseEntity<ApiResponse<TokenValidationResponse>> validateResetToken(
+            @RequestParam(value = "token", required = false) String token) {
+        TokenValidationResponse validationResult = authService.validateResetToken(token);
+        return ResponseEntity.ok(ApiResponse.ok("Token validation completed", validationResult));
     }
 }
