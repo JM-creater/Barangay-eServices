@@ -187,6 +187,9 @@ export const Register: React.FC = () => {
                     value={formData.email}
                     onChange={handleChange}
                   />
+                  <small style={{ display: 'block', color: '#64748b', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    We'll send your registration confirmation and document updates here.
+                  </small>
                 </div>
               </div>
 
