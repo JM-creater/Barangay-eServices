@@ -31,7 +31,7 @@ export const AdminDashboard: React.FC = () => {
     reportService
       .getDashboardStats()
       .then(setStats)
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -262,6 +262,7 @@ export const AdminDashboard: React.FC = () => {
               <p style={{ color: '#64748b', fontSize: '0.875rem' }}>No applications recorded yet.</p>
             )}
           </Card>
+
 
           {/* Quick Administration Actions */}
           <Card title="Management & Governance">

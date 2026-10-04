@@ -144,7 +144,7 @@ export const RequestTracking: React.FC = () => {
               <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#2E8B57' }}>Application Successfully Submitted!</h3>
               <p style={{ fontSize: '0.9rem', marginTop: '0.25rem', lineHeight: 1.5 }}>
                 Your appointment slot is reserved atomically. Please save your reference number:{' '}
-                <strong>{referenceNumber}</strong>. You may track this page anytime.
+                <strong>{referenceNumber}</strong>. An email confirmation has been dispatched to your registered email address. You may track this page anytime.
               </p>
             </div>
           </div>

@@ -3,15 +3,16 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
+import { PasswordInput } from '../../components/common/PasswordInput';
 import { authService } from '../../services/authService';
-import { Lock, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Lock, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
 
 export const ResetPassword: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const queryToken = new URLSearchParams(location.search).get('token') || '';
 
-  const [token, setToken] = useState(queryToken);
+  const [token] = useState<string>(queryToken.trim());
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,8 +23,8 @@ export const ResetPassword: React.FC = () => {
     e.preventDefault();
     setError(null);
 
-    if (!token.trim()) {
-      setError('Please provide the password reset token.');
+    if (!token) {
+      setError('No valid password reset link detected. Please request a new link.');
       return;
     }
 
@@ -39,10 +40,10 @@ export const ResetPassword: React.FC = () => {
 
     setLoading(true);
     try {
-      await authService.resetPassword(token.trim(), newPassword);
+      await authService.resetPassword(token, newPassword);
       setSuccess(true);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password. The token may be invalid or expired.');
+      setError(err.response?.data?.message || 'Failed to reset password. The link may be invalid or expired.');
     } finally {
       setLoading(false);
     }
@@ -115,8 +116,8 @@ export const ResetPassword: React.FC = () => {
                 <h3 style={{ fontSize: '1.25rem', color: '#0F2A4A', marginBottom: '0.5rem' }}>
                   Password Reset Successful
                 </h3>
-                <p style={{ color: '#616E7C', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                  Your password has been changed. You can now sign in with your new credentials.
+                <p style={{ color: '#616E7C', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                  Your password has been changed successfully. A security confirmation has been dispatched to your email.
                 </p>
                 <Button
                   type="button"
@@ -127,33 +128,79 @@ export const ResetPassword: React.FC = () => {
                   Sign In Now
                 </Button>
               </div>
+            ) : !token ? (
+              /* Security Screen: If accessed directly without the secure email link */
+              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <div
+                  style={{
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '50%',
+                    backgroundColor: '#FEF2F2',
+                    color: '#DC2626',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <AlertCircle size={32} />
+                </div>
+                <h3 style={{ fontSize: '1.2rem', color: '#0F2A4A', marginBottom: '0.5rem' }}>
+                  Secure Reset Link Required
+                </h3>
+                <p style={{ color: '#616E7C', fontSize: '0.875rem', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+                  For account protection, password resets must be accessed via the secure verification link sent to your registered Gmail address.
+                </p>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => navigate('/forgot-password')}
+                  style={{ width: '100%', marginBottom: '0.75rem' }}
+                >
+                  Request Password Reset Link
+                </Button>
+                <Link
+                  to="/login"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    fontSize: '0.875rem',
+                    color: '#64748B',
+                  }}
+                >
+                  <ArrowLeft size={14} /> Back to Sign In
+                </Link>
+              </div>
             ) : (
+              /* Verified Form: Token is held strictly in state and NEVER shown on screen */
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
-                    Reset Token
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Paste the reset token received"
-                    value={token}
-                    onChange={(e) => setToken(e.target.value)}
-                    style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
-                  />
-                  <small style={{ color: '#64748b', fontSize: '0.75rem', display: 'block', marginTop: '0.25rem' }}>
-                    Sent via email or provided on previous screen.
-                  </small>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.65rem 0.85rem',
+                    backgroundColor: '#F0FDF4',
+                    border: '1px solid #BBF7D0',
+                    borderRadius: '8px',
+                    color: '#166534',
+                    fontSize: '0.825rem',
+                    fontWeight: 600,
+                  }}
+                >
+                  <ShieldCheck size={18} color="#166534" />
+                  <span>Secure Reset Link Verified</span>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
                     New Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     required
-                    placeholder="At least 6 characters"
+                    placeholder="Enter at least 6 characters"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                   />
@@ -163,8 +210,7 @@ export const ResetPassword: React.FC = () => {
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.35rem' }}>
                     Confirm New Password
                   </label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     required
                     placeholder="Repeat new password"
                     value={confirmPassword}
@@ -173,10 +219,10 @@ export const ResetPassword: React.FC = () => {
                 </div>
 
                 <Button type="submit" variant="primary" isLoading={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
-                  Set New Password
+                  Update Password
                 </Button>
 
-                <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+                <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
                   <Link
                     to="/login"
                     style={{

@@ -94,21 +94,26 @@ export const ForgotPassword: React.FC = () => {
                   <CheckCircle2 size={32} />
                 </div>
                 <h3 style={{ fontSize: '1.15rem', color: '#0F2A4A', marginBottom: '0.5rem' }}>
-                  Request Received
+                  Password Reset Instructions Sent
                 </h3>
-                <p style={{ color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '1.25rem' }}>
+                <p style={{ color: '#475569', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: '0.75rem' }}>
                   {successMessage}
                 </p>
+                <div style={{
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  fontSize: '0.85rem',
+                  color: '#166534',
+                  marginBottom: '1.25rem',
+                  lineHeight: 1.5,
+                  textAlign: 'left',
+                }}>
+                  Please check your <strong>Gmail / Email inbox</strong> (and Spam or Promotions folder). Click the <strong>Reset My Password</strong> link in the email or use the recovery token.
+                </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate('/reset-password')}
-                    style={{ width: '100%' }}
-                  >
-                    I already have a reset token
-                  </Button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
                   <Link
                     to="/login"
                     style={{
@@ -119,7 +124,6 @@ export const ForgotPassword: React.FC = () => {
                       fontSize: '0.875rem',
                       color: '#1E4E8C',
                       fontWeight: 600,
-                      marginTop: '0.5rem',
                     }}
                   >
                     <ArrowLeft size={16} /> Back to Sign In

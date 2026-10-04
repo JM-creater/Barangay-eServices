@@ -15,6 +15,7 @@ export interface CreateStaffPayload {
   role: string;
 }
 
+
 export const adminService = {
   async getAllUsers(search?: string, page = 0, size = 10): Promise<PaginatedResponse<User>> {
     const response = await api.get<ApiResponse<PaginatedResponse<User>>>('/admin/users', {
