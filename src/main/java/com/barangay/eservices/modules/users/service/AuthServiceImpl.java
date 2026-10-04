@@ -3,6 +3,8 @@ package com.barangay.eservices.modules.users.service;
 import com.barangay.eservices.exception.BadRequestException;
 import com.barangay.eservices.exception.ResourceNotFoundException;
 import com.barangay.eservices.modules.audit.service.AuditLogService;
+import com.barangay.eservices.modules.notifications.service.EmailService;
+import com.barangay.eservices.modules.notifications.service.EmailTemplateBuilder;
 import com.barangay.eservices.modules.users.dto.AuthRequest;
 import com.barangay.eservices.modules.users.dto.AuthResponse;
 import com.barangay.eservices.modules.users.dto.ChangePasswordRequest;
@@ -56,6 +58,10 @@ public class AuthServiceImpl implements AuthService {
     private PasswordResetTokenRepository passwordResetTokenRepository;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private EmailTemplateBuilder templateBuilder;
+    @Autowired
+    private EmailService emailService;
 
     @Override
     public AuthResponse login(AuthRequest loginRequest) {
@@ -110,6 +116,16 @@ public class AuthServiceImpl implements AuthService {
         user.setRoles(Collections.singleton(residentRole));
         User savedUser = userRepository.save(user);
 
+        if (savedUser.getEmail() != null && !savedUser.getEmail().isBlank()) {
+            String fullName = ((savedUser.getFirstName() != null ? savedUser.getFirstName() : "") + " " +
+                    (savedUser.getLastName() != null ? savedUser.getLastName() : "")).trim();
+            String welcomeHtml = templateBuilder.buildWelcomeTemplate(
+                    fullName.isEmpty() ? savedUser.getUsername() : fullName,
+                    savedUser.getUsername());
+            emailService.sendHtmlEmail(savedUser.getEmail(), savedUser.getFirstName(),
+                    "Welcome to Barangay Cansojong e-Services", welcomeHtml);
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         registerRequest.getUsername(),
@@ -158,9 +174,9 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request) {
         String identifier = request.getEmailOrUsername().trim();
-        Optional<User> userOpt = userRepository.findByUsername(identifier);
+        Optional<User> userOpt = userRepository.findByUsernameIgnoreCase(identifier);
         if (userOpt.isEmpty()) {
-            userOpt = userRepository.findByEmail(identifier);
+            userOpt = userRepository.findByEmailIgnoreCase(identifier);
         }
 
         if (userOpt.isPresent()) {
@@ -168,13 +184,18 @@ public class AuthServiceImpl implements AuthService {
             passwordResetTokenRepository.deleteByUser(user);
 
             String token = UUID.randomUUID().toString();
+            String resetHtml = templateBuilder.buildPasswordResetTemplate(user.getUsername(), token);
             LocalDateTime expiry = LocalDateTime.now().plusHours(2);
             PasswordResetToken resetToken = new PasswordResetToken(token, user, expiry);
             passwordResetTokenRepository.save(resetToken);
 
+            if (user.getEmail() != null && !user.getEmail().isBlank()) {
+                emailService.sendHtmlEmail(user.getEmail(), user.getFirstName(),
+                        "Password Reset Request - Barangay Cansojong", resetHtml);
+            }
+
             notificationService.sendNotification(user, "Password Reset Request",
-                    "A password reset request was initiated for your account. Use recovery token: " + token +
-                    " (valid for 2 hours) to reset your password.",
+                    "A password reset request was initiated for your account. A secure reset link has been dispatched to your registered email address. If you did not make this request, please contact barangay administration immediately.",
                     NotificationType.GENERAL, null);
 
             auditLogService.logAction(user, "FORGOT_PASSWORD_REQUESTED", "User", user.getId().toString(),
@@ -198,6 +219,15 @@ public class AuthServiceImpl implements AuthService {
 
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);
+
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            String securityNoticeHtml = templateBuilder.buildGeneralNotificationTemplate(
+                    "Security Alert: Password Changed Successfully",
+                    "Your account password was successfully reset. If you did not make this change, please contact barangay administration immediately."
+            );
+            emailService.sendHtmlEmail(user.getEmail(), user.getFirstName(),
+                    "Security Alert: Password Changed Successfully", securityNoticeHtml);
+        }
 
         notificationService.sendNotification(user, "Password Reset Successful",
                 "Your account password was successfully reset. If you did not make this change, please contact barangay administration immediately.",

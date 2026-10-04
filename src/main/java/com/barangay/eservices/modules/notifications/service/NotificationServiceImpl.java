@@ -27,14 +27,36 @@ public class NotificationServiceImpl implements NotificationService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private EmailTemplateBuilder templateBuilder;
+
     @Override
     @Transactional
     public void sendNotification(User recipient, String title, String message, NotificationType type, String referenceNumber) {
         Notification notification = new Notification(recipient, title, message, type, referenceNumber);
         notificationRepository.save(notification);
 
-        if (recipient != null && recipient.getEmail() != null) {
-            emailService.sendEmail(recipient.getEmail(), "[" + title + "] Barangay Cansojong e-Services", message);
+        // Dispatches outbound transactional email to recipient's email if available
+        if (recipient != null && recipient.getEmail() != null && !recipient.getEmail().isBlank()) {
+            // Avoid duplicate email if caller already handled password reset directly
+            if (title != null && title.toLowerCase().contains("password reset request")) {
+                return;
+            }
+
+            String html;
+            if (referenceNumber != null && !referenceNumber.isBlank()) {
+                html = templateBuilder.buildDocumentStatusTemplate(
+                        title, message, referenceNumber, null, "View in Portal");
+            } else {
+                html = templateBuilder.buildGeneralNotificationTemplate(title, message);
+            }
+
+            emailService.sendHtmlEmail(
+                    recipient.getEmail(),
+                    recipient.getFirstName(),
+                    "[" + title + "] Barangay Cansojong e-Services",
+                    html
+            );
         }
     }
 
