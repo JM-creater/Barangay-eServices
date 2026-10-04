@@ -1,51 +1,84 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { PasswordInput } from '../../components/common/PasswordInput';
 import { authService } from '../../services/authService';
-import { Lock, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Lock, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck, ShieldAlert, Loader2 } from 'lucide-react';
+
+type PageStatus = 'validating' | 'valid' | 'invalid' | 'missing' | 'success';
 
 export const ResetPassword: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const queryToken = new URLSearchParams(location.search).get('token') || '';
+  const rawToken = new URLSearchParams(location.search).get('token')?.trim() || '';
 
-  const [token] = useState<string>(queryToken.trim());
+  const [status, setStatus] = useState<PageStatus>(rawToken ? 'validating' : 'missing');
+  const [statusMessage, setStatusMessage] = useState<string>('');
+  const [token, setToken] = useState<string>(rawToken);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!token) {
-      setError('No valid password reset link detected. Please request a new link.');
+  useEffect(() => {
+    if (!rawToken) {
+      setStatus('missing');
       return;
     }
 
+    let isMounted = true;
+    setStatus('validating');
+
+    authService.validateResetToken(rawToken)
+      .then((response) => {
+        if (!isMounted) return;
+        if (response.valid) {
+          setStatus('valid');
+          setToken(rawToken);
+        } else {
+          setStatus('invalid');
+          setStatusMessage(response.message || 'This password reset link is invalid, has expired, or has already been used.');
+          window.history.replaceState({}, '', '/reset-password');
+        }
+      })
+      .catch((error: any) => {
+        if (!isMounted) return;
+        setStatus('invalid');
+        const fallbackMsg = error.response?.data?.message || 'Unable to verify reset link. The link may be invalid or expired.';
+        setStatusMessage(fallbackMsg);
+        window.history.replaceState({}, '', '/reset-password');
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [rawToken]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      setSubmitError('Password must be at least 6 characters long.');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.');
+      setSubmitError('Passwords do not match.');
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
     try {
       await authService.resetPassword(token, newPassword);
-      setSuccess(true);
+      setStatus('success');
+      window.history.replaceState({}, '', '/reset-password');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password. The link may be invalid or expired.');
+      setSubmitError(err.response?.data?.message || 'Failed to reset password. The link may be invalid or expired.');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -77,26 +110,21 @@ export const ResetPassword: React.FC = () => {
           </div>
 
           <Card>
-            {error && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.75rem',
-                  backgroundColor: '#fef2f2',
-                  border: '1px solid #fee2e2',
-                  borderRadius: '8px',
-                  color: '#D64545',
-                  fontSize: '0.875rem',
-                  marginBottom: '1rem',
-                }}
-              >
-                <AlertCircle size={18} /> {error}
+            {/* STATE 1: Proactive Verification in Progress */}
+            {status === 'validating' && (
+              <div style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
+                <Loader2 size={38} className="animate-spin" style={{ color: '#1E4E8C', margin: '0 auto 1rem' }} />
+                <h3 style={{ fontSize: '1.15rem', color: '#0F2A4A', marginBottom: '0.35rem' }}>
+                  Verifying Security Link...
+                </h3>
+                <p style={{ color: '#64748B', fontSize: '0.875rem', margin: 0 }}>
+                  Please wait while we validate your password recovery token.
+                </p>
               </div>
             )}
 
-            {success ? (
+            {/* STATE 2: Password Reset Succeeded */}
+            {status === 'success' && (
               <div style={{ textAlign: 'center', padding: '1rem 0' }}>
                 <div
                   style={{
@@ -117,7 +145,7 @@ export const ResetPassword: React.FC = () => {
                   Password Reset Successful
                 </h3>
                 <p style={{ color: '#616E7C', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-                  Your password has been changed successfully. A security confirmation has been dispatched to your email.
+                  Your password has been changed successfully. You may now sign in using your new credentials.
                 </p>
                 <Button
                   type="button"
@@ -128,8 +156,10 @@ export const ResetPassword: React.FC = () => {
                   Sign In Now
                 </Button>
               </div>
-            ) : !token ? (
-              /* Security Screen: If accessed directly without the secure email link */
+            )}
+
+            {/* STATE 3: Missing Token in URL */}
+            {status === 'missing' && (
               <div style={{ textAlign: 'center', padding: '1rem 0' }}>
                 <div
                   style={{
@@ -173,9 +203,77 @@ export const ResetPassword: React.FC = () => {
                   <ArrowLeft size={14} /> Back to Sign In
                 </Link>
               </div>
-            ) : (
-              /* Verified Form: Token is held strictly in state and NEVER shown on screen */
+            )}
+
+            {/* STATE 4: Invalid, Expired, Truncated, or Used Token */}
+            {status === 'invalid' && (
+              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <div
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    backgroundColor: '#FFF7ED',
+                    border: '1px solid #FFEDD5',
+                    color: '#EA580C',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  <ShieldAlert size={32} />
+                </div>
+                <h3 style={{ fontSize: '1.2rem', color: '#0F2A4A', marginBottom: '0.5rem' }}>
+                  Invalid or Expired Reset Link
+                </h3>
+                <p style={{ color: '#64748B', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+                  {statusMessage || 'This password reset link is invalid, has expired, or has already been used. For your security, reset links are single-use only and expire after 2 hours.'}
+                </p>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => navigate('/forgot-password')}
+                  style={{ width: '100%', marginBottom: '0.75rem' }}
+                >
+                  Request New Reset Link
+                </Button>
+                <Link
+                  to="/login"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    fontSize: '0.875rem',
+                    color: '#64748B',
+                  }}
+                >
+                  <ArrowLeft size={14} /> Back to Sign In
+                </Link>
+              </div>
+            )}
+
+            {/* STATE 5: Verified & Active Token -> Show Input Form */}
+            {status === 'valid' && (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {submitError && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.75rem',
+                      backgroundColor: '#fef2f2',
+                      border: '1px solid #fee2e2',
+                      borderRadius: '8px',
+                      color: '#D64545',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    <AlertCircle size={18} /> {submitError}
+                  </div>
+                )}
+
                 <div
                   style={{
                     display: 'flex',
@@ -218,7 +316,12 @@ export const ResetPassword: React.FC = () => {
                   />
                 </div>
 
-                <Button type="submit" variant="primary" isLoading={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  isLoading={submitting}
+                  style={{ width: '100%', marginTop: '0.5rem' }}
+                >
                   Update Password
                 </Button>
 
