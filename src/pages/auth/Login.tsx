@@ -4,31 +4,28 @@ import { Layout } from '../../components/layout/Layout';
 import { useAuth } from '../../hooks/useAuth';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { ShieldCheck, LogIn, AlertCircle } from 'lucide-react';
+import { ShieldCheck, LogIn, AlertCircle, UserPlus, ArrowRight } from 'lucide-react';
 import { PasswordInput } from '../../components/common/PasswordInput';
+import { GoogleAuthButton } from '../../components/auth/GoogleAuthButton';
 
 export const Login: React.FC = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [unregisteredToken, setUnregisteredToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const isExpired = new URLSearchParams(location.search).get('expired') === 'true';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    try {
-      await login({ usernameOrEmail, password });
-      // Redirect based on role or home
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
+  const navigatePostLogin = () => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
         const u = JSON.parse(storedUser);
         if (u.roles?.includes('ROLE_ADMIN')) {
           navigate('/admin/dashboard');
@@ -37,15 +34,66 @@ export const Login: React.FC = () => {
         } else {
           navigate('/dashboard');
         }
-      } else {
+      } catch {
         navigate('/dashboard');
       }
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setUnregisteredToken(null);
+    setLoading(true);
+
+    try {
+      await login({ usernameOrEmail, password });
+      navigatePostLogin();
     } catch (err: any) {
       setError(
         err.response?.data?.message || 'Login failed. Please check your credentials and try again.'
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async (idToken: string) => {
+    setError(null);
+    setUnregisteredToken(null);
+    setGoogleLoading(true);
+
+    try {
+      await loginWithGoogle({ idToken });
+      navigatePostLogin();
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message ||
+        'Google sign in failed. Please ensure your account is registered and try again.';
+      setError(errorMessage);
+
+      // If user is not yet registered, allow 1-click transition to registration
+      if (
+        errorMessage.toLowerCase().includes('not registered') ||
+        errorMessage.toLowerCase().includes('register first') ||
+        errorMessage.toLowerCase().includes('no account found')
+      ) {
+        setUnregisteredToken(idToken);
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleProceedToRegister = () => {
+    if (unregisteredToken) {
+      // Store token temporarily in session storage to prefill registration form smoothly
+      sessionStorage.setItem('google_pending_token', unregisteredToken);
+      navigate('/register?from_google=true');
+    } else {
+      navigate('/register');
     }
   };
 
@@ -100,20 +148,82 @@ export const Login: React.FC = () => {
               <div
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
+                  flexDirection: 'column',
                   gap: '0.5rem',
-                  padding: '0.75rem',
+                  padding: '0.85rem',
                   backgroundColor: '#fef2f2',
                   border: '1px solid #fecaca',
                   borderRadius: '8px',
                   color: '#D64545',
                   fontSize: '0.85rem',
-                  marginBottom: '1rem',
+                  marginBottom: '1.25rem',
                 }}
               >
-                <AlertCircle size={18} /> {error}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ lineHeight: '1.4' }}>{error}</span>
+                </div>
+                {unregisteredToken && (
+                  <button
+                    type="button"
+                    onClick={handleProceedToRegister}
+                    style={{
+                      marginTop: '0.25rem',
+                      alignSelf: 'flex-start',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      padding: '0.4rem 0.75rem',
+                      backgroundColor: '#1E4E8C',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'background-color 0.2s',
+                    }}
+                  >
+                    <UserPlus size={14} /> Register with this Google Account <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
             )}
+
+            {/* Google OAuth One-Click Sign In */}
+            <div style={{ marginBottom: '1rem' }}>
+              <GoogleAuthButton
+                text="signin_with"
+                onCredential={handleGoogleSignIn}
+                onError={(msg) => setError(msg)}
+                disabled={loading || googleLoading}
+                isLoading={googleLoading}
+              />
+            </div>
+
+            {/* Visual Divider */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                margin: '1.25rem 0',
+                color: '#9AA5B1',
+              }}
+            >
+              <div style={{ flex: 1, height: '1px', backgroundColor: '#E4E7EB' }} />
+              <span
+                style={{
+                  padding: '0 0.75rem',
+                  fontSize: '0.75rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  fontWeight: 600,
+                }}
+              >
+                or sign in with password
+              </span>
+              <div style={{ flex: 1, height: '1px', backgroundColor: '#E4E7EB' }} />
+            </div>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
@@ -126,6 +236,7 @@ export const Login: React.FC = () => {
                   placeholder="e.g. resident or user@email.com"
                   value={usernameOrEmail}
                   onChange={(e) => setUsernameOrEmail(e.target.value)}
+                  disabled={loading || googleLoading}
                 />
               </div>
 
@@ -143,10 +254,17 @@ export const Login: React.FC = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading || googleLoading}
                 />
               </div>
 
-              <Button type="submit" variant="primary" isLoading={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+              <Button
+                type="submit"
+                variant="primary"
+                isLoading={loading}
+                disabled={googleLoading}
+                style={{ width: '100%', marginTop: '0.5rem' }}
+              >
                 <LogIn size={18} /> Sign In
               </Button>
             </form>
