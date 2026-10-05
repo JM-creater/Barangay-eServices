@@ -68,7 +68,7 @@ public class DataInitializer implements CommandLineRunner {
         if (!userRepository.existsByUsername("admin")) {
             User admin = new User();
             admin.setUsername("admin");
-            admin.setEmail("admin@cansojong.talisaycity.gov.ph");
+            admin.setEmail("garadomartin56@gmail.com");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setFirstName("Barangay");
             admin.setLastName("Administrator");
@@ -118,7 +118,7 @@ public class DataInitializer implements CommandLineRunner {
         if (!userRepository.existsByUsername("resident")) {
             User resident = new User();
             resident.setUsername("resident");
-            resident.setEmail("juandelacruz@gmail.com");
+            resident.setEmail("garadojosephmartin98@gmail.com");
             resident.setPassword(passwordEncoder.encode("resident123"));
             resident.setFirstName("Juan");
             resident.setMiddleName("Silayan");

@@ -18,6 +18,8 @@ public class UserDTO {
     private String city;
     private String province;
     private String accountStatus;
+    private String authProvider;
+    private String profilePictureUrl;
     private Set<String> roles;
     private LocalDateTime createdAt;
 
@@ -141,6 +143,22 @@ public class UserDTO {
 
     public void setRoles(Set<String> roles) {
         this.roles = roles;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 
     public LocalDateTime getCreatedAt() {

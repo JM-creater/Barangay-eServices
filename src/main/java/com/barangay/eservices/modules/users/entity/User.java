@@ -57,6 +57,15 @@ public class User {
     @Column(name = "account_status", length = 20)
     private String accountStatus = "ACTIVE";
 
+    @Column(name = "auth_provider", length = 20)
+    private String authProvider = "LOCAL";
+
+    @Column(name = "google_id", length = 100)
+    private String googleId;
+
+    @Column(name = "profile_picture_url", length = 500)
+    private String profilePictureUrl;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",
@@ -209,6 +218,30 @@ public class User {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getAuthProvider() {
+        return authProvider;
+    }
+
+    public void setAuthProvider(String authProvider) {
+        this.authProvider = authProvider;
+    }
+
+    public String getGoogleId() {
+        return googleId;
+    }
+
+    public void setGoogleId(String googleId) {
+        this.googleId = googleId;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 
     public String getFullName() {
