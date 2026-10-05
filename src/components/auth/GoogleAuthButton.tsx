@@ -60,7 +60,7 @@ interface GoogleAuthButtonProps {
   isLoading?: boolean;
 }
 
-export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
+const GoogleAuthButtonComponent: React.FC<GoogleAuthButtonProps> = ({
   text = 'continue_with',
   onCredential,
   onError,
@@ -70,6 +70,17 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [gisLoaded, setGisLoaded] = useState<boolean>(false);
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
+
+  const onCredentialRef = useRef(onCredential);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onCredentialRef.current = onCredential;
+    onErrorRef.current = onError;
+  });
+
+  const initializedClientIdRef = useRef<string | null>(null);
+  const renderedTextRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (window.google?.accounts?.id) {
@@ -87,8 +98,10 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
 
     if (checkGis()) return;
 
-    // Check if script element already exists in document
-    let script = document.querySelector('script[src="https://accounts.google.com/gsi/client"]') as HTMLScriptElement;
+    let script = document.querySelector(
+      'script[src*="accounts.google.com/gsi/client"]'
+    ) as HTMLScriptElement;
+
     if (!script) {
       script = document.createElement('script');
       script.src = 'https://accounts.google.com/gsi/client?hl=en';
@@ -113,49 +126,54 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     };
   }, []);
 
-  // Initialize and render Google button when GIS and clientId are ready
   useEffect(() => {
     if (!gisLoaded || !clientId || !containerRef.current) {
       return;
     }
 
     try {
-      window.google?.accounts.id.initialize({
-        client_id: clientId,
-        callback: (response) => {
-          if (response?.credential) {
-            onCredential(response.credential);
-          } else {
-            onError?.('Google returned an empty credential. Please try again.');
-          }
-        },
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
+      if (initializedClientIdRef.current !== clientId) {
+        window.google?.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response) => {
+            if (response?.credential) {
+              onCredentialRef.current(response.credential);
+            } else {
+              onErrorRef.current?.('Google returned an empty credential. Please try again.');
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+        initializedClientIdRef.current = clientId;
       }
 
-      window.google?.accounts.id.renderButton(containerRef.current, {
-        type: 'standard',
-        theme: 'outline',
-        size: 'large',
-        text: text,
-        shape: 'rectangular',
-        logo_alignment: 'left',
-        width: 380,
-        locale: 'en'
-      });
+      const shouldRender =
+        !containerRef.current.hasChildNodes() || renderedTextRef.current !== text;
+
+      if (shouldRender) {
+        containerRef.current.innerHTML = '';
+        window.google?.accounts.id.renderButton(containerRef.current, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: text,
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: 380,
+          locale: 'en',
+        });
+        renderedTextRef.current = text;
+      }
     } catch (err: any) {
       console.error('Error initializing Google GIS button:', err);
-      onError?.(err?.message || 'Failed to initialize Google Sign-In');
+      onErrorRef.current?.(err?.message || 'Failed to initialize Google Sign-In');
     }
-  }, [gisLoaded, clientId, text, onCredential, onError]);
+  }, [gisLoaded, clientId, text]);
 
   const handleFallbackClick = () => {
     if (!clientId) {
-      onError?.(
+      onErrorRef.current?.(
         'Google OAuth Client ID is not configured. Please add VITE_GOOGLE_CLIENT_ID to your frontend .env file.'
       );
       return;
@@ -163,7 +181,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     if (window.google?.accounts?.id) {
       window.google.accounts.id.prompt();
     } else {
-      onError?.('Google Identity Services is still loading. Please wait a moment and try again.');
+      onErrorRef.current?.('Google Identity Services is still loading. Please wait a moment and try again.');
     }
   };
 
@@ -176,7 +194,6 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {/* If Google Client ID is configured and GIS loaded, Google's official iframe button will mount here */}
       {clientId ? (
         <div
           ref={containerRef}
@@ -191,7 +208,6 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
           }}
         />
       ) : (
-        /* Fallback styled button when VITE_GOOGLE_CLIENT_ID is not configured or during offline fallback */
         <button
           type="button"
           onClick={handleFallbackClick}
@@ -234,3 +250,5 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     </div>
   );
 };
+
+export const GoogleAuthButton = React.memo(GoogleAuthButtonComponent);
