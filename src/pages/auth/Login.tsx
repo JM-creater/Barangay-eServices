@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { useAuth } from '../../hooks/useAuth';
@@ -22,7 +22,7 @@ export const Login: React.FC = () => {
 
   const isExpired = new URLSearchParams(location.search).get('expired') === 'true';
 
-  const navigatePostLogin = () => {
+  const navigatePostLogin = useCallback(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
@@ -40,7 +40,7 @@ export const Login: React.FC = () => {
     } else {
       navigate('/dashboard');
     }
-  };
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +60,7 @@ export const Login: React.FC = () => {
     }
   };
 
-  const handleGoogleSignIn = async (idToken: string) => {
+  const handleGoogleSignIn = useCallback(async (idToken: string) => {
     setError(null);
     setUnregisteredToken(null);
     setGoogleLoading(true);
@@ -85,7 +85,7 @@ export const Login: React.FC = () => {
     } finally {
       setGoogleLoading(false);
     }
-  };
+  }, [loginWithGoogle, navigatePostLogin]);
 
   const handleProceedToRegister = () => {
     if (unregisteredToken) {
@@ -195,7 +195,7 @@ export const Login: React.FC = () => {
               <GoogleAuthButton
                 text="signin_with"
                 onCredential={handleGoogleSignIn}
-                onError={(msg) => setError(msg)}
+                onError={setError}
                 disabled={loading || googleLoading}
                 isLoading={googleLoading}
               />
