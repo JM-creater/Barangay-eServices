@@ -28,6 +28,8 @@ public class UserMapper {
         dto.setCity(user.getCity());
         dto.setProvince(user.getProvince());
         dto.setAccountStatus(user.getAccountStatus());
+        dto.setAuthProvider(user.getAuthProvider());
+        dto.setProfilePictureUrl(user.getProfilePictureUrl());
         dto.setCreatedAt(user.getCreatedAt());
 
         if (user.getRoles() != null) {
