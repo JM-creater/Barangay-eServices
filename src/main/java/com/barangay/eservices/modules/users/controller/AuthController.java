@@ -72,4 +72,28 @@ public class AuthController {
         TokenValidationResponse validationResult = authService.validateResetToken(token);
         return ResponseEntity.ok(ApiResponse.ok("Token validation completed", validationResult));
     }
+
+    @PostMapping("/google/login")
+    @Operation(summary = "Sign in using verified Google OAuth ID token")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(
+            @Valid @RequestBody com.barangay.eservices.modules.users.dto.GoogleLoginRequest request) {
+        AuthResponse response = authService.loginWithGoogle(request);
+        return ResponseEntity.ok(ApiResponse.ok("Google login successful", response));
+    }
+
+    @PostMapping("/google/verify")
+    @Operation(summary = "Verify Google ID token and check registration status")
+    public ResponseEntity<ApiResponse<com.barangay.eservices.modules.users.dto.GoogleTokenVerificationResponse>> verifyGoogleToken(
+            @Valid @RequestBody com.barangay.eservices.modules.users.dto.GoogleTokenVerifyRequest request) {
+        com.barangay.eservices.modules.users.dto.GoogleTokenVerificationResponse response = authService.verifyGoogleToken(request);
+        return ResponseEntity.ok(ApiResponse.ok("Google token verified", response));
+    }
+
+    @PostMapping("/google/register")
+    @Operation(summary = "Register new resident using verified Google OAuth account")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleRegister(
+            @Valid @RequestBody com.barangay.eservices.modules.users.dto.GoogleRegisterRequest request) {
+        AuthResponse response = authService.registerWithGoogle(request);
+        return ResponseEntity.ok(ApiResponse.ok("Registration via Google successful", response));
+    }
 }
