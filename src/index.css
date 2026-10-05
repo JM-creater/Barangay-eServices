@@ -591,3 +591,70 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* ==========================================================================
+   Skeleton Loading Animation & Styles
+   ========================================================================== */
+@keyframes skeletonPulse {
+  0% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #e2e8f0 0%,
+    #edf2f7 35%,
+    #f8fafc 50%,
+    #edf2f7 65%,
+    #e2e8f0 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.8s ease-in-out infinite, skeletonPulse 2s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+.skeleton-text {
+  height: 1rem;
+  border-radius: 4px;
+}
+
+.skeleton-circular {
+  border-radius: 50% !important;
+}
+
+.skeleton-rounded {
+  border-radius: var(--radius-md) !important;
+}
+
+.skeleton-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none !important;
+    background: #e2e8f0 !important;
+  }
+}
+

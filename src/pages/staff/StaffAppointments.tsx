@@ -6,7 +6,6 @@ import { Card } from '../../components/common/Card';
 import { Table } from '../../components/common/Table';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { formatDate, formatTime } from '../../utils/formatters';
 import { Calendar, CheckCircle2, XCircle, RefreshCw, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';

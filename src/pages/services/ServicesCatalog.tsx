@@ -5,7 +5,7 @@ import { serviceCatalogService } from '../../services/serviceCatalogService';
 import { ServiceItem } from '../../types/Service';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { ServicesCatalogSkeleton } from '../../components/skeletons';
 import { formatCurrency } from '../../utils/formatters';
 import { FileText, Clock, Banknote, CheckCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 
@@ -50,7 +50,7 @@ export const ServicesCatalog: React.FC = () => {
         </div>
 
         {loading ? (
-          <LoadingSpinner message="Loading services catalog..." />
+          <ServicesCatalogSkeleton count={4} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
             {services.map((service) => (

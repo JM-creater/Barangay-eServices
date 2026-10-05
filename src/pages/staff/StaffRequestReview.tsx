@@ -9,7 +9,7 @@ import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { StaffRequestReviewSkeleton, DocumentPreviewSkeleton } from '../../components/skeletons';
 import { formatCurrency, formatDateTime, formatDate, formatTime } from '../../utils/formatters';
 import {
   ArrowLeft,
@@ -208,7 +208,7 @@ export const StaffRequestReview: React.FC = () => {
     }
   };
 
-  if (loading) return <Layout showSidebar><LoadingSpinner message="Loading application details..." /></Layout>;
+  if (loading) return <Layout showSidebar><StaffRequestReviewSkeleton /></Layout>;
   if (!request) return <Layout showSidebar><div style={{ textAlign: 'center', padding: '3rem' }}>Application not found.</div></Layout>;
 
   return (
@@ -722,7 +722,7 @@ export const StaffRequestReview: React.FC = () => {
           title={`Official Certificate Preview - ${request.referenceNumber}`}
         >
           {previewLoading ? (
-            <LoadingSpinner message="Rendering official document template..." />
+            <DocumentPreviewSkeleton />
           ) : previewData ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '0.75rem' }}>
