@@ -9,6 +9,7 @@ import com.barangay.eservices.modules.requests.service.DocumentRequestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.barangay.eservices.util.PaginationUtil;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,7 +32,7 @@ public class DocumentRequestController {
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     @Operation(summary = "Submit a new document application with appointment slot and file attachments")
     public ResponseEntity<ApiResponse<RequestResponseDTO>> submitRequest(
-            @RequestPart("data") RequestCreateDTO requestDTO,
+            @Valid @RequestPart("data") RequestCreateDTO requestDTO,
             @RequestPart(value = "files", required = false) List<MultipartFile> files,
             @RequestParam(value = "requirementIds", required = false) List<Long> requirementIds) {
 

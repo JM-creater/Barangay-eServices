@@ -36,7 +36,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.barangay.eservices.util.FileValidationUtil;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,13 +82,86 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
                 .orElseThrow(() -> new ResourceNotFoundException("Service", "id", requestDTO.getServiceId()));
 
         if (!Boolean.TRUE.equals(serviceItem.getIsActive())) {
-            throw new BadRequestException("This service is currently unavailable");
+            throw new BadRequestException("This document service is currently unavailable or inactive.");
         }
 
-        // 1. Reserve appointment slot atomically
-        AppointmentSlot slot = appointmentService.reserveSlot(requestDTO.getSlotId());
+        // 1. Prevent duplicate concurrent active applications
+        List<RequestStatus> activeStatuses = Arrays.asList(
+                RequestStatus.SUBMITTED,
+                RequestStatus.UNDER_REVIEW,
+                RequestStatus.ACCEPTED,
+                RequestStatus.PROCESSING,
+                RequestStatus.NEEDS_CORRECTION,
+                RequestStatus.READY_FOR_RELEASE
+        );
+        Optional<DocumentRequest> existingActive = requestRepository.findFirstByResidentIdAndServiceItemIdAndCurrentStatusInOrderByCreatedAtDesc(
+                residentId, serviceItem.getId(), activeStatuses);
+        if (existingActive.isPresent()) {
+            throw new BadRequestException(String.format(
+                    "You already have an active application (%s) for '%s' currently in status [%s]. Please track its progress or wait until it is completed.",
+                    existingActive.get().getReferenceNumber(),
+                    serviceItem.getName(),
+                    existingActive.get().getCurrentStatus()
+            ));
+        }
 
-        // 2. Create Document Request
+        // 2. Validate purpose length
+        if (requestDTO.getPurpose() == null || requestDTO.getPurpose().trim().length() < 5) {
+            throw new BadRequestException("Purpose of request is required and must be at least 5 characters long.");
+        }
+
+        // 3. Enforce Mandatory Requirements
+        List<ServiceRequirement> allRequirements = serviceItem.getRequirements();
+        List<ServiceRequirement> mandatoryRequirements = allRequirements.stream()
+                .filter(r -> Boolean.TRUE.equals(r.getIsMandatory()))
+                .collect(Collectors.toList());
+
+        Map<Long, MultipartFile> providedFilesByReqId = new HashMap<>();
+        if (files != null && requirementIds != null) {
+            if (files.size() != requirementIds.size()) {
+                throw new BadRequestException("Mismatch between number of uploaded files and requirement identifiers.");
+            }
+            for (int i = 0; i < files.size(); i++) {
+                MultipartFile f = files.get(i);
+                Long reqId = requirementIds.get(i);
+                if (f != null && !f.isEmpty() && reqId != null) {
+                    providedFilesByReqId.put(reqId, f);
+                }
+            }
+        }
+
+        for (ServiceRequirement mandatoryReq : mandatoryRequirements) {
+            if (!providedFilesByReqId.containsKey(mandatoryReq.getId())) {
+                throw new BadRequestException(String.format(
+                        "Missing mandatory document: '%s' is required to process your application.",
+                        mandatoryReq.getRequirementName()
+                ));
+            }
+        }
+
+        // 4. Security Validate each uploaded file (extension, MIME, magic bytes, size)
+        for (Map.Entry<Long, MultipartFile> entry : providedFilesByReqId.entrySet()) {
+            Long reqId = entry.getKey();
+            MultipartFile file = entry.getValue();
+
+            ServiceRequirement matchedReq = allRequirements.stream()
+                    .filter(r -> r.getId().equals(reqId))
+                    .findFirst()
+                    .orElseThrow(() -> new BadRequestException("Invalid requirement ID: " + reqId + " does not belong to service " + serviceItem.getName()));
+
+            FileValidationUtil.validateFile(file, matchedReq.getRequirementName());
+        }
+
+        // 5. Validate and Reserve appointment slot atomically
+        AppointmentSlot slot = appointmentService.reserveSlot(requestDTO.getSlotId());
+        if (slot.getSlotDate().isBefore(LocalDate.now())) {
+            throw new BadRequestException("Cannot schedule an appointment slot in the past.");
+        }
+        if (slot.getSlotDate().getDayOfWeek() == DayOfWeek.SATURDAY || slot.getSlotDate().getDayOfWeek() == DayOfWeek.SUNDAY) {
+            throw new BadRequestException("Appointments cannot be scheduled on weekends.");
+        }
+
+        // 6. Create Document Request
         DocumentRequest request = new DocumentRequest();
         String refNo = ReferenceGenerator.generateRequestReference();
         while (requestRepository.existsByReferenceNumber(refNo)) {
@@ -89,11 +170,11 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
         request.setReferenceNumber(refNo);
         request.setResident(resident);
         request.setServiceItem(serviceItem);
-        request.setPurpose(requestDTO.getPurpose());
+        request.setPurpose(requestDTO.getPurpose().trim());
         request.setSubmittedDataJson(requestDTO.getSubmittedDataJson());
         request.setCurrentStatus(RequestStatus.SUBMITTED);
 
-        // 3. Create Appointment (linked to reserved slot)
+        // 7. Create Appointment (linked to reserved slot)
         Appointment appointment = new Appointment();
         appointment.setResident(resident);
         appointment.setSlot(slot);
@@ -103,33 +184,28 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
         appointment.setNotes("Scheduled appointment for " + serviceItem.getName());
         request.setAppointment(appointment);
 
-        // 4. Initial history log
+        // 8. Initial history log
         request.addHistory(null, RequestStatus.SUBMITTED, "Application submitted online", resident);
 
-        // 5. Save request
+        // 9. Save request
         DocumentRequest savedRequest = requestRepository.save(request);
 
-        // 6. Handle file attachments
-        if (files != null && !files.isEmpty()) {
-            for (int i = 0; i < files.size(); i++) {
-                MultipartFile file = files.get(i);
-                if (file != null && !file.isEmpty()) {
-                    FileStorageService.StoredFile stored = fileStorageService.storeFile(file);
-                    RequestFile requestFile = new RequestFile();
-                    requestFile.setDocumentRequest(savedRequest);
-                    requestFile.setOriginalFileName(stored.getOriginalFileName());
-                    requestFile.setStoredFileName(stored.getStoredFileName());
-                    requestFile.setStoragePath(stored.getStoragePath());
-                    requestFile.setFileType(stored.getFileType());
-                    requestFile.setFileSize(stored.getFileSize());
+        // 10. Handle file attachments & store safely
+        for (Map.Entry<Long, MultipartFile> entry : providedFilesByReqId.entrySet()) {
+            Long reqId = entry.getKey();
+            MultipartFile file = entry.getValue();
 
-                    if (requirementIds != null && i < requirementIds.size() && requirementIds.get(i) != null) {
-                        requirementRepository.findById(requirementIds.get(i)).ifPresent(requestFile::setRequirement);
-                    }
+            FileStorageService.StoredFile stored = fileStorageService.storeFile(file);
+            RequestFile requestFile = new RequestFile();
+            requestFile.setDocumentRequest(savedRequest);
+            requestFile.setOriginalFileName(stored.getOriginalFileName());
+            requestFile.setStoredFileName(stored.getStoredFileName());
+            requestFile.setStoragePath(stored.getStoragePath());
+            requestFile.setFileType(stored.getFileType());
+            requestFile.setFileSize(stored.getFileSize());
 
-                    fileRepository.save(requestFile);
-                }
-            }
+            requirementRepository.findById(reqId).ifPresent(requestFile::setRequirement);
+            fileRepository.save(requestFile);
         }
 
         // 7. Send notification to resident
@@ -335,6 +411,15 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
                 if (file != null && !file.isEmpty()) {
+                    String reqName = "Resubmitted Document";
+                    if (requirementIds != null && i < requirementIds.size() && requirementIds.get(i) != null) {
+                        Long reqId = requirementIds.get(i);
+                        reqName = requirementRepository.findById(reqId)
+                                .map(ServiceRequirement::getRequirementName)
+                                .orElse("Requirement " + reqId);
+                    }
+                    FileValidationUtil.validateFile(file, reqName);
+
                     FileStorageService.StoredFile stored = fileStorageService.storeFile(file);
                     RequestFile requestFile = new RequestFile();
                     requestFile.setDocumentRequest(request);

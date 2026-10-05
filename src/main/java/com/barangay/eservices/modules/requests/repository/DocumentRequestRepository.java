@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,4 +44,8 @@ public interface DocumentRequestRepository extends JpaRepository<DocumentRequest
     List<DocumentRequest> findByCreatedAtBetweenOrderByCreatedAtDesc(java.time.LocalDateTime start, java.time.LocalDateTime end);
 
     List<DocumentRequest> findByCreatedAtBetweenAndCurrentStatusOrderByCreatedAtDesc(java.time.LocalDateTime start, java.time.LocalDateTime end, RequestStatus status);
+
+    boolean existsByResidentIdAndServiceItemIdAndCurrentStatusIn(Long residentId, Long serviceItemId, Collection<RequestStatus> statuses);
+
+    Optional<DocumentRequest> findFirstByResidentIdAndServiceItemIdAndCurrentStatusInOrderByCreatedAtDesc(Long residentId, Long serviceItemId, Collection<RequestStatus> statuses);
 }
