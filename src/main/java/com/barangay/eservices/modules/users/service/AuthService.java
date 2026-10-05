@@ -15,4 +15,7 @@ public interface AuthService {
     void forgotPassword(com.barangay.eservices.modules.users.dto.ForgotPasswordRequest request);
     void resetPassword(com.barangay.eservices.modules.users.dto.ResetPasswordRequest request);
     TokenValidationResponse validateResetToken(String token);
+    AuthResponse loginWithGoogle(com.barangay.eservices.modules.users.dto.GoogleLoginRequest request);
+    com.barangay.eservices.modules.users.dto.GoogleTokenVerificationResponse verifyGoogleToken(com.barangay.eservices.modules.users.dto.GoogleTokenVerifyRequest request);
+    AuthResponse registerWithGoogle(com.barangay.eservices.modules.users.dto.GoogleRegisterRequest request);
 }
