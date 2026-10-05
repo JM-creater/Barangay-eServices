@@ -6,7 +6,7 @@ import { DashboardStats, FinancialReport, ServiceRevenueBreakdown } from '../../
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { Table } from '../../components/common/Table';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { StaffDashboardSkeleton } from '../../components/skeletons';
 import { formatCurrency } from '../../utils/formatters';
 import {
   FileText,
@@ -129,7 +129,7 @@ export const StaffDashboard: React.FC = () => {
     },
   ];
 
-  if (loading) return <Layout showSidebar><LoadingSpinner message="Loading operations dashboard..." /></Layout>;
+  if (loading) return <Layout showSidebar><StaffDashboardSkeleton /></Layout>;
 
   return (
     <Layout showSidebar>

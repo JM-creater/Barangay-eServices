@@ -5,6 +5,7 @@ import { serviceCatalogService } from '../../services/serviceCatalogService';
 import { ServiceItem } from '../../types/Service';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
+import { HomePageServicesSkeleton } from '../../components/skeletons';
 import { formatCurrency } from '../../utils/formatters';
 import { BARANGAY_INFO } from '../../utils/constants';
 import {
@@ -255,7 +256,7 @@ export const HomePage: React.FC = () => {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#616E7C' }}>Loading services...</div>
+          <HomePageServicesSkeleton count={6} />
         ) : (
           <div className="grid-3">
             {services.slice(0, 6).map((service) => (

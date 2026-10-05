@@ -9,8 +9,8 @@ import { Appointment } from '../../types/Appointment';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-import { Table } from '../../components/common/Table';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { Skeleton } from '../../components/common/Skeleton';
+import { StatCardSkeleton } from '../../components/skeletons';
 import { formatDate, formatDateTime, formatTime } from '../../utils/formatters';
 import {
   FileText,
@@ -115,80 +115,90 @@ export const ResidentDashboard: React.FC = () => {
 
         {/* Quick Stats Grid */}
         <div className="grid-3">
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  backgroundColor: '#fef9e8',
-                  color: '#F2B600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Clock size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.8rem', color: '#616E7C' }}>Pending Review</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1F2933' }}>
-                  {pendingRequests.length}
+          {loading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <Card>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      backgroundColor: '#fef9e8',
+                      color: '#F2B600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Clock size={24} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.8rem', color: '#616E7C' }}>Pending Review</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1F2933' }}>
+                      {pendingRequests.length}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </Card>
+              </Card>
 
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  backgroundColor: '#f0f6fc',
-                  color: '#3B82C4',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Calendar size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.8rem', color: '#616E7C' }}>Scheduled Appointments</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1F2933' }}>
-                  {appointments.filter((a) => a.status === 'CONFIRMED' || a.status === 'PENDING_CONFIRMATION').length}
+              <Card>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      backgroundColor: '#f0f6fc',
+                      color: '#3B82C4',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Calendar size={24} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.8rem', color: '#616E7C' }}>Scheduled Appointments</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1F2933' }}>
+                      {appointments.filter((a) => a.status === 'CONFIRMED' || a.status === 'PENDING_CONFIRMATION').length}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </Card>
+              </Card>
 
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  backgroundColor: '#edf7f2',
-                  color: '#2E8B57',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <CheckCircle2 size={24} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.8rem', color: '#616E7C' }}>Completed Documents</div>
-                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1F2933' }}>
-                  {readyOrReleased.length}
+              <Card>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      backgroundColor: '#edf7f2',
+                      color: '#2E8B57',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.8rem', color: '#616E7C' }}>Completed Documents</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1F2933' }}>
+                      {readyOrReleased.length}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </Card>
+              </Card>
+            </>
+          )}
         </div>
 
         {/* Recent Applications Section */}
@@ -203,7 +213,36 @@ export const ResidentDashboard: React.FC = () => {
           }
         >
           {loading ? (
-            <LoadingSpinner message="Loading applications..." />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }} aria-busy="true" aria-label="Loading applications">
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.85rem',
+                    border: '1px solid #DDE3EA',
+                    borderRadius: '8px',
+                    backgroundColor: '#fff',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                      <Skeleton variant="text" width={110} height="1rem" />
+                      <Skeleton variant="rounded" width={75} height={20} />
+                    </div>
+                    <Skeleton variant="text" width="60%" height="0.85rem" />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <Skeleton variant="text" width={80} height="0.8rem" />
+                    <Skeleton variant="rounded" width={80} height={32} />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : requests.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
               <p>You haven't submitted any applications yet.</p>

@@ -9,7 +9,7 @@ import { ServiceItem, Requirement } from '../../types/Service';
 import { AppointmentSlot } from '../../types/Appointment';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { ApplyServiceSkeleton, SlotGridSkeleton } from '../../components/skeletons';
 import { formatCurrency, formatTime } from '../../utils/formatters';
 import { validateAttachedFile, formatFileSize } from '../../utils/fileValidation';
 import {
@@ -271,7 +271,7 @@ export const ApplyService: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <LoadingSpinner message="Loading application details..." />
+        <ApplyServiceSkeleton />
       </Layout>
     );
   }
@@ -752,7 +752,7 @@ export const ApplyService: React.FC = () => {
                 </label>
 
                 {loadingSlots ? (
-                  <LoadingSpinner message="Checking available slots..." />
+                  <SlotGridSkeleton count={6} minWidth="180px" />
                 ) : slots.length === 0 ? (
                   <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '8px', color: '#64748b' }}>
                     No appointment slots are available for {selectedDate}. Please select another weekday.
