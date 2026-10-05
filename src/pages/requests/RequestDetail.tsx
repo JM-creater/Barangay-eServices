@@ -10,7 +10,7 @@ import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { RequestDetailSkeleton } from '../../components/skeletons';
 import { formatCurrency, formatDateTime, formatDate, formatTime } from '../../utils/formatters';
 import { BARANGAY_INFO } from '../../utils/constants';
 import {
@@ -157,7 +157,7 @@ export const RequestDetail: React.FC = () => {
     setShowPrintSlipModal(true);
   };
 
-  if (loading) return <Layout showSidebar><LoadingSpinner message="Loading request..." /></Layout>;
+  if (loading) return <Layout showSidebar><RequestDetailSkeleton /></Layout>;
   if (!request) return <Layout showSidebar><div style={{ textAlign: 'center', padding: '3rem' }}>Application not found.</div></Layout>;
 
   return (

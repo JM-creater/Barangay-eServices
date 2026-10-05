@@ -3,7 +3,7 @@ import { Layout } from '../../components/layout/Layout';
 import { reportService } from '../../services/reportService';
 import { DashboardStats } from '../../types/Report';
 import { Card } from '../../components/common/Card';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { AdminDashboardSkeleton } from '../../components/skeletons';
 import { formatCurrency } from '../../utils/formatters';
 import {
   Users,
@@ -73,7 +73,7 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  if (loading) return <Layout showSidebar><LoadingSpinner message="Loading admin metrics..." /></Layout>;
+  if (loading) return <Layout showSidebar><AdminDashboardSkeleton /></Layout>;
 
   return (
     <Layout showSidebar>

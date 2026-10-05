@@ -1,5 +1,5 @@
 import React from 'react';
-import { LoadingSpinner } from './LoadingSpinner';
+import { TableSkeleton } from '../skeletons/TableSkeleton';
 
 interface Column<T> {
   header: string;
@@ -14,6 +14,7 @@ interface TableProps<T> {
   keyExtractor: (item: T) => string | number;
   emptyMessage?: string;
   isLoading?: boolean;
+  skeletonRowCount?: number;
 }
 
 export function Table<T>({
@@ -22,12 +23,18 @@ export function Table<T>({
   keyExtractor,
   emptyMessage = 'No records found.',
   isLoading = false,
+  skeletonRowCount = 5,
 }: TableProps<T>) {
   if (isLoading) {
     return (
-      <div className="table-container" style={{ padding: '1.5rem', textAlign: 'center' }}>
-        <LoadingSpinner message="Loading records..." size="md" />
-      </div>
+      <TableSkeleton
+        columns={columns.map((c) => ({
+          header: c.header,
+          width: c.width,
+          className: c.className,
+        }))}
+        rowCount={skeletonRowCount}
+      />
     );
   }
 
