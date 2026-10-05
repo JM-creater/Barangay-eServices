@@ -1,6 +1,16 @@
 import api from './api';
 import { ApiResponse } from '../types/common';
-import { AuthResponse, LoginPayload, RegisterPayload, TokenValidationResult, User } from '../types/User';
+import {
+  AuthResponse,
+  LoginPayload,
+  RegisterPayload,
+  TokenValidationResult,
+  User,
+  GoogleLoginPayload,
+  GoogleVerifyPayload,
+  GoogleVerifyResult,
+  GoogleRegisterPayload
+} from '../types/User';
 
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
@@ -44,6 +54,21 @@ export const authService = {
     const response = await api.get<ApiResponse<TokenValidationResult>>('/auth/validate-reset-token', {
       params: { token },
     });
+    return response.data.data;
+  },
+
+  async loginWithGoogle(payload: GoogleLoginPayload): Promise<AuthResponse> {
+    const response = await api.post<ApiResponse<AuthResponse>>('/auth/google/login', payload);
+    return response.data.data;
+  },
+
+  async verifyGoogleToken(payload: GoogleVerifyPayload): Promise<GoogleVerifyResult> {
+    const response = await api.post<ApiResponse<GoogleVerifyResult>>('/auth/google/verify', payload);
+    return response.data.data;
+  },
+
+  async registerWithGoogle(payload: GoogleRegisterPayload): Promise<AuthResponse> {
+    const response = await api.post<ApiResponse<AuthResponse>>('/auth/google/register', payload);
     return response.data.data;
   }
 };
