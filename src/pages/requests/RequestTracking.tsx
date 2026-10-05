@@ -6,7 +6,7 @@ import { DocumentRequest } from '../../types/Request';
 import { Card } from '../../components/common/Card';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { RequestTrackingSkeleton } from '../../components/skeletons';
 import { formatCurrency, formatDateTime, formatDate, formatTime } from '../../utils/formatters';
 import { BARANGAY_INFO, REQUEST_STATUS_CONFIG } from '../../utils/constants';
 import {
@@ -150,7 +150,7 @@ export const RequestTracking: React.FC = () => {
           </div>
         )}
 
-        {loading && <LoadingSpinner message="Searching application record..." />}
+        {loading && <RequestTrackingSkeleton />}
 
         {error && (
           <Card>

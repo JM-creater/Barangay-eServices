@@ -8,7 +8,7 @@ import { Table } from '../../components/common/Table';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { SlotGridSkeleton } from '../../components/skeletons';
 import { formatDate, formatTime } from '../../utils/formatters';
 import { BARANGAY_INFO } from '../../utils/constants';
 import { Calendar, Clock, RefreshCw, AlertCircle, CheckCircle2, FileText } from 'lucide-react';
@@ -214,7 +214,7 @@ export const ResidentAppointments: React.FC = () => {
                 </label>
 
                 {loadingSlots ? (
-                  <LoadingSpinner message="Checking available slots..." />
+                  <SlotGridSkeleton count={6} minWidth="140px" />
                 ) : availableSlots.length === 0 ? (
                   <p style={{ color: '#64748b', fontSize: '0.85rem' }}>
                     No slots available on this date.

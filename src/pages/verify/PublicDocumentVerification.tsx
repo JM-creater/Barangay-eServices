@@ -5,7 +5,7 @@ import { processingService } from '../../services/processingService';
 import { DocumentVerification } from '../../types/Request';
 import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
-import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { VerificationResultSkeleton } from '../../components/skeletons';
 import { formatDateTime } from '../../utils/formatters';
 import {
   ShieldCheck,
@@ -112,7 +112,7 @@ export const PublicDocumentVerification: React.FC = () => {
         </Card>
 
         {/* Verification Result */}
-        {loading && <LoadingSpinner message="Querying official Barangay registry records..." />}
+        {loading && <VerificationResultSkeleton />}
 
         {!loading && hasSearched && result && (
           <div>
