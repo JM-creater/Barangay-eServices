@@ -13,6 +13,8 @@ export interface User {
   city: string;
   province: string;
   accountStatus: string;
+  authProvider?: string;
+  profilePictureUrl?: string;
   roles: string[];
   createdAt: string;
 }
@@ -46,4 +48,36 @@ export interface RegisterPayload {
 export interface TokenValidationResult {
   valid: boolean;
   message: string;
+}
+
+export interface GoogleLoginPayload {
+  idToken: string;
+}
+
+export interface GoogleVerifyPayload {
+  idToken: string;
+}
+
+export interface GoogleVerifyResult {
+  registered: boolean;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  pictureUrl?: string;
+  suggestedUsername?: string;
+  message?: string;
+}
+
+export interface GoogleRegisterPayload {
+  idToken: string;
+  username: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  suffix?: string;
+  contactNumber: string;
+  address: string;
+  barangay?: string;
+  city?: string;
+  province?: string;
 }
