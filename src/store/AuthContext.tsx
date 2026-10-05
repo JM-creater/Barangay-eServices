@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, LoginPayload, RegisterPayload } from '../types/User';
+import { User, LoginPayload, RegisterPayload, GoogleLoginPayload, GoogleRegisterPayload, AuthResponse } from '../types/User';
 import { authService } from '../services/authService';
 
 interface AuthContextType {
@@ -13,6 +13,8 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
+  loginWithGoogle: (payload: GoogleLoginPayload) => Promise<AuthResponse>;
+  registerWithGoogle: (payload: GoogleRegisterPayload) => Promise<AuthResponse>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -61,6 +63,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(authData.user);
   };
 
+  const loginWithGoogle = async (payload: GoogleLoginPayload): Promise<AuthResponse> => {
+    const authData = await authService.loginWithGoogle(payload);
+    localStorage.setItem('token', authData.accessToken);
+    localStorage.setItem('user', JSON.stringify(authData.user));
+    setToken(authData.accessToken);
+    setUser(authData.user);
+    return authData;
+  };
+
+  const registerWithGoogle = async (payload: GoogleRegisterPayload): Promise<AuthResponse> => {
+    const authData = await authService.registerWithGoogle(payload);
+    localStorage.setItem('token', authData.accessToken);
+    localStorage.setItem('user', JSON.stringify(authData.user));
+    setToken(authData.accessToken);
+    setUser(authData.user);
+    return authData;
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -96,6 +116,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin,
         login,
         register,
+        loginWithGoogle,
+        registerWithGoogle,
         logout,
         refreshUser,
       }}
