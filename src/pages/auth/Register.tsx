@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout';
 import { useAuth } from '../../hooks/useAuth';
@@ -59,7 +59,7 @@ export const Register: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleGoogleCredential = async (idToken: string) => {
+  const handleGoogleCredential = useCallback(async (idToken: string) => {
     setError(null);
     setIsExistingUser(false);
     setGoogleLoading(true);
@@ -96,7 +96,7 @@ export const Register: React.FC = () => {
     } finally {
       setGoogleLoading(false);
     }
-  };
+  }, [authService]);
 
   const cancelGoogleMode = () => {
     setGoogleProfile(null);
@@ -317,7 +317,7 @@ export const Register: React.FC = () => {
                   <GoogleAuthButton
                     text="signup_with"
                     onCredential={handleGoogleCredential}
-                    onError={(msg) => setError(msg)}
+                    onError={setError}
                     disabled={loading || googleLoading}
                     isLoading={googleLoading}
                   />
