@@ -206,6 +206,7 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
 
             requirementRepository.findById(reqId).ifPresent(requestFile::setRequirement);
             fileRepository.save(requestFile);
+            savedRequest.addFile(requestFile);
         }
 
         // 7. Send notification to resident
@@ -220,7 +221,14 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
         auditLogService.logAction(resident, "REQUEST_SUBMITTED", "DocumentRequest", savedRequest.getId().toString(),
                 "Reference: " + refNo + ", Service: " + serviceItem.getName());
 
-        return RequestMapper.toResponseDTO(requestRepository.findById(savedRequest.getId()).orElse(savedRequest));
+        if (savedRequest.getHistory() != null) {
+            savedRequest.getHistory().size();
+        }
+        if (savedRequest.getFiles() != null) {
+            savedRequest.getFiles().size();
+        }
+
+        return RequestMapper.toResponseDTO(savedRequest);
     }
 
     @Override
@@ -228,6 +236,12 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
     public RequestResponseDTO getRequestById(Long id) {
         DocumentRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DocumentRequest", "id", id));
+        if (request.getHistory() != null) {
+            request.getHistory().size();
+        }
+        if (request.getFiles() != null) {
+            request.getFiles().size();
+        }
         return RequestMapper.toResponseDTO(request);
     }
 
@@ -236,6 +250,12 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
     public RequestResponseDTO getRequestByReference(String referenceNumber) {
         DocumentRequest request = requestRepository.findByReferenceNumber(referenceNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("DocumentRequest", "referenceNumber", referenceNumber));
+        if (request.getHistory() != null) {
+            request.getHistory().size();
+        }
+        if (request.getFiles() != null) {
+            request.getFiles().size();
+        }
         return RequestMapper.toResponseDTO(request);
     }
 
@@ -287,6 +307,13 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
     public RequestResponseDTO reviewRequest(Long id, StaffReviewActionDTO reviewAction) {
         DocumentRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DocumentRequest", "id", id));
+
+        if (request.getHistory() != null) {
+            request.getHistory().size();
+        }
+        if (request.getFiles() != null) {
+            request.getFiles().size();
+        }
 
         Long staffId = SecurityUtil.getCurrentUserId();
         User staff = userRepository.findById(staffId)
@@ -381,6 +408,12 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
         }
 
         DocumentRequest updated = requestRepository.save(request);
+        if (updated.getHistory() != null) {
+            updated.getHistory().size();
+        }
+        if (updated.getFiles() != null) {
+            updated.getFiles().size();
+        }
         return RequestMapper.toResponseDTO(updated);
     }
 
@@ -389,6 +422,13 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
     public RequestResponseDTO resubmitCorrections(Long id, CorrectionResubmitDTO resubmitDTO, List<MultipartFile> files, List<Long> requirementIds) {
         DocumentRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DocumentRequest", "id", id));
+
+        if (request.getHistory() != null) {
+            request.getHistory().size();
+        }
+        if (request.getFiles() != null) {
+            request.getFiles().size();
+        }
 
         Long residentId = SecurityUtil.getCurrentUserId();
         if (!request.getResident().getId().equals(residentId)) {
@@ -434,6 +474,7 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
                     }
 
                     fileRepository.save(requestFile);
+                    request.addFile(requestFile);
                 }
             }
         }
@@ -447,6 +488,12 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
                 "Resident resubmitted updated information and documents. " + (resubmitDTO.getRemarks() != null ? resubmitDTO.getRemarks() : ""), resident);
 
         DocumentRequest updated = requestRepository.save(request);
+        if (updated.getHistory() != null) {
+            updated.getHistory().size();
+        }
+        if (updated.getFiles() != null) {
+            updated.getFiles().size();
+        }
 
         auditLogService.logAction(resident, "REQUEST_CORRECTIONS_RESUBMITTED", "DocumentRequest", request.getId().toString(),
                 "Corrections resubmitted for " + request.getReferenceNumber());
@@ -459,6 +506,13 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
     public RequestResponseDTO cancelRequest(Long id, String reason) {
         DocumentRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DocumentRequest", "id", id));
+
+        if (request.getHistory() != null) {
+            request.getHistory().size();
+        }
+        if (request.getFiles() != null) {
+            request.getFiles().size();
+        }
 
         Long residentId = SecurityUtil.getCurrentUserId();
         User currentUser = userRepository.findById(residentId)
@@ -484,6 +538,12 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
 
         request.addHistory(previousStatus, RequestStatus.CANCELLED, "Request cancelled. Reason: " + reason, currentUser);
         DocumentRequest updated = requestRepository.save(request);
+        if (updated.getHistory() != null) {
+            updated.getHistory().size();
+        }
+        if (updated.getFiles() != null) {
+            updated.getFiles().size();
+        }
 
         auditLogService.logAction(currentUser, "REQUEST_CANCELLED", "DocumentRequest", request.getId().toString(),
                 "Cancelled " + request.getReferenceNumber() + ": " + reason);
@@ -496,6 +556,13 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
     public RequestResponseDTO rescheduleRequest(Long id, com.barangay.eservices.modules.appointments.dto.RescheduleRequest rescheduleRequest) {
         DocumentRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DocumentRequest", "id", id));
+
+        if (request.getHistory() != null) {
+            request.getHistory().size();
+        }
+        if (request.getFiles() != null) {
+            request.getFiles().size();
+        }
 
         Long currentUserId = SecurityUtil.getCurrentUserId();
         User currentUser = userRepository.findById(currentUserId)
@@ -522,6 +589,12 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
                 currentUser);
 
         DocumentRequest updated = requestRepository.save(request);
+        if (updated.getHistory() != null) {
+            updated.getHistory().size();
+        }
+        if (updated.getFiles() != null) {
+            updated.getFiles().size();
+        }
         return RequestMapper.toResponseDTO(updated);
     }
 }

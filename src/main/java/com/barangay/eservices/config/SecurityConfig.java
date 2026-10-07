@@ -85,9 +85,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/requests/track/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/ai/predict", "/api/ai/model-status", "/api/ai/assistant/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         // Swagger & API docs
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // AI Staff endpoints
+                        .requestMatchers("/api/ai/generate-remarks", "/api/ai/model-reload").hasAnyRole("STAFF", "APPROVER", "ADMIN")
                         // Staff endpoints
                         .requestMatchers("/api/staff/**").hasAnyRole("STAFF", "APPROVER", "ADMIN")
                         // Approver endpoints
