@@ -26,6 +26,8 @@ import {
   X,
   FileCheck,
 } from 'lucide-react';
+import { aiService, AiPredictionResponse } from '../../services/aiService';
+import { AiPredictionBadge } from '../../components/ai/AiPredictionBadge';
 
 interface AttachedFileItem {
   file: File;
@@ -65,6 +67,27 @@ export const ApplyService: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [attemptedStep2Submit, setAttemptedStep2Submit] = useState(false);
+
+  // AI Prediction State
+  const [aiPrediction, setAiPrediction] = useState<AiPredictionResponse | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  useEffect(() => {
+    if (service && purpose.trim().length >= 3) {
+      setAiLoading(true);
+      aiService
+        .predictTurnaround({
+          serviceId: service.id,
+          serviceCode: service.serviceCode,
+          purpose: purpose.trim(),
+          submittedDocsCount: selectedFiles.length,
+          requiredDocsCount: service.requirements?.filter((r) => r.isMandatory).length || 1,
+        })
+        .then((res) => setAiPrediction(res))
+        .catch(() => {})
+        .finally(() => setAiLoading(false));
+    }
+  }, [service, purpose, selectedFiles.length]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -519,6 +542,8 @@ export const ApplyService: React.FC = () => {
         {step === 2 && (
           <Card title="Upload Supporting Requirements">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <AiPredictionBadge prediction={aiPrediction} loading={aiLoading} />
+
               <div
                 style={{
                   backgroundColor: '#f8fafc',
@@ -837,6 +862,8 @@ export const ApplyService: React.FC = () => {
                   <div><strong>Attached Supporting Files:</strong> {selectedFiles.length} file(s) verified</div>
                 </div>
               </div>
+
+              <AiPredictionBadge prediction={aiPrediction} loading={aiLoading} />
 
               {selectedSlot && (
                 <div style={{ backgroundColor: '#eff5fc', padding: '1.25rem', borderRadius: '10px', border: '1px solid #bcd5f0' }}>

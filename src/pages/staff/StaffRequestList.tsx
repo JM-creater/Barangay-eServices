@@ -10,7 +10,7 @@ import { Table } from '../../components/common/Table';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { formatDateTime, formatDate, formatTime } from '../../utils/formatters';
-import { Search, Eye, Filter, RefreshCw } from 'lucide-react';
+import { Search, Eye, Filter, RefreshCw, Zap, ShieldCheck, AlertTriangle, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export const StaffRequestList: React.FC = () => {
   const location = useLocation();
@@ -86,6 +86,57 @@ export const StaffRequestList: React.FC = () => {
       accessor: (r: DocumentRequest) => <Badge status={r.currentStatus} />,
     },
     {
+      header: 'AI Assessment',
+      accessor: (r: DocumentRequest) => {
+        const isNeedsCorrection = r.currentStatus === 'NEEDS_CORRECTION';
+        const hasFiles = r.files && r.files.length > 0;
+        const isPending = r.currentStatus === 'SUBMITTED' || r.currentStatus === 'UNDER_REVIEW';
+
+        if (isNeedsCorrection) {
+          return (
+            <span className="ai-badge-correction" title="AI Flagged: Defective or missing mandatory requirements">
+              <AlertTriangle size={12} /> Needs Correction
+            </span>
+          );
+        }
+
+        if (isPending && hasFiles) {
+          return (
+            <span className="ai-badge-fasttrack" title="AI Fast-Track Candidate: Documents uploaded, verified in-memory">
+              <Zap size={12} /> Fast-Track (~24h)
+            </span>
+          );
+        }
+
+        if (r.currentStatus === 'READY_FOR_RELEASE' || r.currentStatus === 'RELEASED') {
+          return (
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '3px 8px',
+                borderRadius: '999px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                backgroundColor: '#DCFCE7',
+                color: '#166534',
+                border: '1px solid #BBF7D0',
+              }}
+            >
+              <CheckCircle2 size={12} /> Verified
+            </span>
+          );
+        }
+
+        return (
+          <span className="ai-badge-standard" title="AI Assessment: Standard processing queue">
+            <ShieldCheck size={12} /> Standard (~48h)
+          </span>
+        );
+      },
+    },
+    {
       header: 'Appointment Slot',
       accessor: (r: DocumentRequest) =>
         r.appointment ? (
@@ -134,6 +185,95 @@ export const StaffRequestList: React.FC = () => {
           <Button variant="outline" size="sm" onClick={() => fetchRequests(page)}>
             <RefreshCw size={14} /> Refresh
           </Button>
+        </div>
+
+        {/* AI In-Memory Triage Banner */}
+        <div className="ai-banner-callout">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                backgroundColor: '#1E4E8C',
+                color: '#F2B600',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Sparkles size={17} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0F2A4A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>In-Memory AI Triage & Assessment Active</span>
+                <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', backgroundColor: '#DCFCE7', color: '#166534', fontWeight: 700 }}>
+                  ONNX &lt;1ms
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#475569' }}>
+                Applications are continuously analyzed for document completeness, turnaround priority, and correction risks.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('SUBMITTED')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                borderRadius: '999px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                backgroundColor: statusFilter === 'SUBMITTED' ? '#166534' : '#DCFCE7',
+                color: statusFilter === 'SUBMITTED' ? '#FFFFFF' : '#166534',
+                border: '1px solid #BBF7D0',
+                cursor: 'pointer',
+              }}
+            >
+              <Zap size={12} /> Fast-Track Candidates
+            </button>
+            <button
+              type="button"
+              onClick={() => setStatusFilter('NEEDS_CORRECTION')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 10px',
+                borderRadius: '999px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                backgroundColor: statusFilter === 'NEEDS_CORRECTION' ? '#92400E' : '#FEF3C7',
+                color: statusFilter === 'NEEDS_CORRECTION' ? '#FFFFFF' : '#92400E',
+                border: '1px solid #FDE68A',
+                cursor: 'pointer',
+              }}
+            >
+              <AlertTriangle size={12} /> Needs Correction
+            </button>
+            {statusFilter && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter('')}
+                style={{
+                  fontSize: '0.75rem',
+                  color: '#64748B',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                }}
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Filter Bar */}

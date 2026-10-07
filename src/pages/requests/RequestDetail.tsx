@@ -26,6 +26,10 @@ import {
 } from 'lucide-react';
 import { PrintSlipModal } from '../../components/requests/PrintSlipModal';
 import { getFileDownloadUrl } from '../../utils/fileUrl';
+import { aiService, AiPredictionResponse } from '../../services/aiService';
+import { AiPredictionBadge } from '../../components/ai/AiPredictionBadge';
+import { triggerBarangayAi } from '../../components/ai/BarangayAiAssistant';
+import { Sparkles } from 'lucide-react';
 
 export const RequestDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +39,8 @@ export const RequestDetail: React.FC = () => {
   const [request, setRequest] = useState<DocumentRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [aiPrediction, setAiPrediction] = useState<AiPredictionResponse | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Correction Modal State
   const [showCorrectionModal, setShowCorrectionModal] = useState(false);
@@ -69,9 +75,24 @@ export const RequestDetail: React.FC = () => {
   const fetchDetail = async () => {
     if (!id) return;
     setLoading(true);
+    setAiPrediction(null);
     try {
       const data = await requestService.getRequestById(parseInt(id, 10));
       setRequest(data);
+      if (data) {
+        setAiLoading(true);
+        aiService
+          .predictTurnaround({
+            serviceId: data.service.id,
+            serviceCode: data.service.serviceCode,
+            purpose: data.purpose,
+            submittedDocsCount: data.files?.length || 0,
+            requiredDocsCount: data.service.requirements?.filter((r) => r.isMandatory).length || 1,
+          })
+          .then((pred) => setAiPrediction(pred))
+          .catch(() => {})
+          .finally(() => setAiLoading(false));
+      }
     } catch {
       setError('Failed to load application details');
     } finally {
@@ -263,6 +284,55 @@ export const RequestDetail: React.FC = () => {
               </div>
             </div>
           </Card>
+
+          {/* AI Turnaround & Readiness Assessment */}
+          <AiPredictionBadge prediction={aiPrediction} loading={aiLoading} />
+
+          {/* AI Citizen Assistant Prompt Callout */}
+          <div className="ai-banner-callout">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '50%',
+                  backgroundColor: '#1E4E8C',
+                  color: '#F2B600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0F2A4A' }}>
+                  Need help preparing for this document?
+                </h4>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#475569' }}>
+                  Ask our in-house trained Barangay AI about physical requirements, fee payment, or release schedules.
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="primary"
+              style={{ backgroundColor: '#1E4E8C' }}
+              onClick={() =>
+                triggerBarangayAi(
+                  `What do I need to bring for my ${request.service.name} application (Ref: ${request.referenceNumber})?`,
+                  {
+                    page: 'request_detail',
+                    referenceNumber: request.referenceNumber,
+                    serviceCode: request.service?.serviceCode,
+                  }
+                )
+              }
+            >
+              Ask Barangay AI
+            </Button>
+          </div>
 
           {/* Appointment Information */}
           {request.appointment && (

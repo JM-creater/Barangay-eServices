@@ -12,6 +12,7 @@ import {
   Clock,
   CheckCircle2,
   FileCheck,
+  Sparkles,
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -262,6 +263,21 @@ export const Sidebar: React.FC = () => {
           >
             <History size={18} />
             <span>Audit Trail</span>
+          </NavLink>
+          <NavLink
+            to="/admin/ai"
+            style={({ isActive }) => ({
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              padding: '0.65rem 0.75rem',
+              borderRadius: '8px',
+              fontSize: '0.875rem',
+              ...(isActive ? activeStyle : normalStyle),
+            })}
+          >
+            <Sparkles size={18} color="#F2B600" />
+            <span>Barangay AI</span>
           </NavLink>
         </>
       )}
