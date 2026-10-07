@@ -18,7 +18,10 @@ import {
   ArrowRight,
   MapPin,
   Building,
+  Sparkles,
+  Bot,
 } from 'lucide-react';
+import { triggerBarangayAi } from '../../components/ai/BarangayAiAssistant';
 
 export const HomePage: React.FC = () => {
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -325,6 +328,63 @@ export const HomePage: React.FC = () => {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Barangay AI Assistant Feature Callout */}
+      <section style={{ marginBottom: '3.5rem' }}>
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #1E4E8C 0%, #0F2A4A 100%)',
+            color: '#FFFFFF',
+            borderRadius: '16px',
+            padding: '2.5rem 2rem',
+            boxShadow: '0 8px 24px rgba(15, 42, 74, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '1.5rem',
+          }}
+        >
+          <div style={{ maxWidth: '600px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                backgroundColor: 'rgba(242, 182, 0, 0.18)',
+                color: '#F2B600',
+                padding: '0.3rem 0.85rem',
+                borderRadius: '999px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                marginBottom: '0.75rem',
+                border: '1px solid rgba(242, 182, 0, 0.4)',
+              }}
+            >
+              <Sparkles size={15} /> 24/7 Digital Citizen Service
+            </div>
+            <h2 style={{ fontSize: '1.75rem', color: '#FFFFFF', fontWeight: 800, margin: '0 0 0.5rem' }}>
+              Meet the Barangay Cansojong AI Assistant
+            </h2>
+            <p style={{ fontSize: '0.95rem', color: '#DDE3EA', lineHeight: 1.6, margin: 0 }}>
+              Need fast answers on document requirements, fee calculations, or office schedules? Our intelligent citizen chatbot is available round-the-clock without waiting in line.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', minWidth: '220px' }}>
+            <Button
+              size="lg"
+              style={{ backgroundColor: '#F2B600', color: '#0F2A4A', fontWeight: 700, gap: '8px', justifyContent: 'center' }}
+              onClick={() => triggerBarangayAi("What are the requirements for Barangay Clearance?", { page: 'home' })}
+            >
+              <Bot size={18} /> Chat with Barangay AI
+            </Button>
+            <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#BFDBFE' }}>
+              Sub-millisecond In-House Trained ONNX NLP
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Office & Contact Info */}

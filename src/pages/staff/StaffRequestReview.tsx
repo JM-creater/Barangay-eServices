@@ -25,7 +25,12 @@ import {
   PenTool,
   Printer,
   ExternalLink,
+  Sparkles,
+  Bot,
+  Loader2,
 } from 'lucide-react';
+import { aiService, AiPredictionResponse } from '../../services/aiService';
+import { AiPredictionBadge } from '../../components/ai/AiPredictionBadge';
 import { DocumentPreview } from '../../types/Request';
 import { getFileDownloadUrl } from '../../utils/fileUrl';
 
@@ -67,6 +72,11 @@ export const StaffRequestReview: React.FC = () => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // AI Prediction & Remarks State
+  const [aiPrediction, setAiPrediction] = useState<AiPredictionResponse | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [generatingRemarks, setGeneratingRemarks] = useState(false);
+
   const fetchRequest = async () => {
     if (!id) return;
     setLoading(true);
@@ -76,11 +86,57 @@ export const StaffRequestReview: React.FC = () => {
       if (data) {
         setPaymentAmount(data.service.fee || 0);
         setRecipientName(data.resident.fullName || '');
+
+        // Fetch in-memory AI assessment
+        setAiLoading(true);
+        aiService
+          .predictTurnaround({
+            serviceId: data.service.id,
+            serviceCode: data.service.serviceCode,
+            purpose: data.purpose,
+            submittedDocsCount: data.files?.length || 0,
+            requiredDocsCount: data.service.requirements?.filter((r) => r.isMandatory).length || 1,
+          })
+          .then((pred) => setAiPrediction(pred))
+          .catch(() => {})
+          .finally(() => setAiLoading(false));
       }
     } catch {
       // Ignored
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateAiRemarks = async (actionType: string) => {
+    if (!request) return;
+    setGeneratingRemarks(true);
+    try {
+      const missingDocs = request.service.requirements
+        ? request.service.requirements
+            .filter((r) => r.isMandatory && !request.files?.some((f) => f.requirementId === r.id))
+            .map((r) => r.requirementName)
+        : [];
+
+      const res = await aiService.generateRemarks({
+        serviceName: request.service.name,
+        applicantName: request.resident.fullName,
+        actionType,
+        missingRequirements: missingDocs,
+        specificNotes: actionType === 'REQUEST_CORRECTION' ? correctionNotes : rejectionReason,
+      });
+
+      if (actionType === 'REQUEST_CORRECTION') {
+        setCorrectionNotes(res.generatedRemarks);
+      } else if (actionType === 'REJECT') {
+        setRejectionReason(res.generatedRemarks);
+      } else if (actionType === 'APPROVE_ENDORSEMENT') {
+        setReviewRemarks(res.generatedRemarks);
+      }
+    } catch (e) {
+      console.error('Failed generating AI remarks', e);
+    } finally {
+      setGeneratingRemarks(false);
     }
   };
 
@@ -377,6 +433,9 @@ export const StaffRequestReview: React.FC = () => {
             </Card>
           </div>
 
+          {/* AI Turnaround & Readiness Assessment */}
+          <AiPredictionBadge prediction={aiPrediction} loading={aiLoading} />
+
           {/* Appointment Slot Info */}
           {request.appointment && (
             <Card title="Scheduled Appointment Slot">
@@ -485,60 +544,210 @@ export const StaffRequestReview: React.FC = () => {
               : 'Reject Application'
           }
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
             {reviewModalType === 'ACCEPT' && (
-              <p style={{ fontSize: '0.875rem', color: '#15803d' }}>
-                Accepting this application will confirm the resident's appointment slot and automatically notify them
-                to appear at the Barangay Hall with original IDs and requirements.
-              </p>
+              <>
+                <div className="ai-modal-callout ai-modal-callout-emerald">
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <Bot size={20} style={{ color: '#166534', flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#166534', fontSize: '0.86rem' }}>
+                        Appointment Confirmation & Official Endorsement
+                      </div>
+                      <p style={{ margin: '3px 0 0', fontSize: '0.8rem', color: '#15803d', lineHeight: 1.45 }}>
+                        Accepting confirms the resident's appointment slot and automatically notifies them to appear at the Barangay Hall with original IDs and requirements.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem', flexWrap: 'wrap', gap: '8px' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1F2933' }}>
+                      Official Endorsement / Review Remarks
+                    </label>
+                    <button
+                      type="button"
+                      disabled={generatingRemarks}
+                      onClick={() => handleGenerateAiRemarks('APPROVE_ENDORSEMENT')}
+                      className="ai-modal-btn ai-modal-btn-emerald"
+                      title="Generate positive endorsement and appointment reminder using Barangay AI"
+                    >
+                      {generatingRemarks ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin" />
+                          <span>Drafting Endorsement...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={13} style={{ color: '#059669' }} />
+                          <span>AI Generate Endorsement</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <textarea
+                    rows={4}
+                    placeholder="Official endorsement notes or internal instructions (e.g., Documents verified in order; confirmed for slot verification)..."
+                    value={reviewRemarks}
+                    onChange={(e) => setReviewRemarks(e.target.value)}
+                    className="ai-modal-textarea ai-modal-textarea-emerald"
+                  />
+                  {reviewRemarks && (
+                    <div className="ai-draft-badge">
+                      <Sparkles size={11} style={{ color: '#059669' }} />
+                      <span>Endorsement drafted • Review and adjust anytime before submitting</span>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
 
             {reviewModalType === 'REQUEST_CORRECTION' && (
-              <div>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Specific Corrections Required *
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Specify which uploaded document is blurry, expired, or missing..."
-                  value={correctionNotes}
-                  onChange={(e) => setCorrectionNotes(e.target.value)}
-                />
-              </div>
+              <>
+                <div className="ai-modal-callout ai-modal-callout-blue">
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <Bot size={20} style={{ color: '#1E4E8C', flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#1E4E8C', fontSize: '0.86rem' }}>
+                        Document Correction Notice
+                      </div>
+                      <p style={{ margin: '3px 0 0', fontSize: '0.8rem', color: '#2B6CB0', lineHeight: 1.45 }}>
+                        Barangay AI can analyze missing or blurry requirements and compose a courteous, specific advisory so the resident can re-upload corrections smoothly.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem', flexWrap: 'wrap', gap: '8px' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1F2933' }}>
+                      Specific Corrections Required *
+                    </label>
+                    <button
+                      type="button"
+                      disabled={generatingRemarks}
+                      onClick={() => handleGenerateAiRemarks('REQUEST_CORRECTION')}
+                      className="ai-modal-btn ai-modal-btn-blue"
+                      title="Draft polite, courteous notice detailing missing or defective documents"
+                    >
+                      {generatingRemarks ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin" />
+                          <span>Drafting Notice...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={13} style={{ color: '#2563EB' }} />
+                          <span>AI Draft Polite Notice</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="Specify which uploaded document is blurry, expired, or missing..."
+                    value={correctionNotes}
+                    onChange={(e) => setCorrectionNotes(e.target.value)}
+                    className="ai-modal-textarea"
+                  />
+                  {correctionNotes && (
+                    <div className="ai-draft-badge">
+                      <Sparkles size={11} style={{ color: '#2563EB' }} />
+                      <span>AI Notice drafted • You can edit or add specific instructions</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.35rem', color: '#1F2933' }}>
+                    Internal Review Remarks (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Internal staff notes (not visible to resident)..."
+                    value={reviewRemarks}
+                    onChange={(e) => setReviewRemarks(e.target.value)}
+                    className="ai-modal-textarea"
+                  />
+                </div>
+              </>
             )}
 
             {reviewModalType === 'REJECT' && (
-              <div>
-                <p style={{ fontSize: '0.875rem', color: '#dc2626', marginBottom: '0.5rem' }}>
-                  Rejecting will release the reserved appointment capacity back to the slot pool and notify the resident.
-                </p>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Rejection Reason *
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Reason for disqualification or rejection..."
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                />
-              </div>
+              <>
+                <div className="ai-modal-callout ai-modal-callout-red">
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <Bot size={20} style={{ color: '#991B1B', flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <div style={{ fontWeight: 700, color: '#991B1B', fontSize: '0.86rem' }}>
+                        Disqualification & Administrative Rejection
+                      </div>
+                      <p style={{ margin: '3px 0 0', fontSize: '0.8rem', color: '#B91C1C', lineHeight: 1.45 }}>
+                        Rejecting will release the reserved appointment capacity back to the slot pool and notify the resident with an official administrative basis.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem', flexWrap: 'wrap', gap: '8px' }}>
+                    <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1F2933' }}>
+                      Rejection Reason *
+                    </label>
+                    <button
+                      type="button"
+                      disabled={generatingRemarks}
+                      onClick={() => handleGenerateAiRemarks('REJECT')}
+                      className="ai-modal-btn ai-modal-btn-red"
+                      title="Draft formal, respectful administrative rejection basis citing barangay requirements"
+                    >
+                      {generatingRemarks ? (
+                        <>
+                          <Loader2 size={13} className="animate-spin" />
+                          <span>Drafting Reason...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={13} style={{ color: '#DC2626' }} />
+                          <span>AI Draft Formal Basis</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="Reason for disqualification or rejection (e.g. Non-resident of barangay, invalid identity)..."
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    className="ai-modal-textarea ai-modal-textarea-red"
+                  />
+                  {rejectionReason && (
+                    <div className="ai-draft-badge">
+                      <Sparkles size={11} style={{ color: '#DC2626' }} />
+                      <span>AI Rejection basis drafted • Review before confirming rejection</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.35rem', color: '#1F2933' }}>
+                    Internal Review Remarks (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Internal staff notes (not visible to resident)..."
+                    value={reviewRemarks}
+                    onChange={(e) => setReviewRemarks(e.target.value)}
+                    className="ai-modal-textarea"
+                  />
+                </div>
+              </>
             )}
 
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Review Remarks (Optional)
-              </label>
-              <input
-                type="text"
-                placeholder="Internal notes..."
-                value={reviewRemarks}
-                onChange={(e) => setReviewRemarks(e.target.value)}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #E2E8F0' }}>
               <Button variant="ghost" onClick={() => setReviewModalType(null)}>
                 Cancel
               </Button>
@@ -547,7 +756,11 @@ export const StaffRequestReview: React.FC = () => {
                 isLoading={actionLoading}
                 onClick={handleReviewAction}
               >
-                Submit Decision
+                {reviewModalType === 'ACCEPT'
+                  ? 'Confirm & Accept Application'
+                  : reviewModalType === 'REQUEST_CORRECTION'
+                  ? 'Send Correction Notice'
+                  : 'Confirm Rejection'}
               </Button>
             </div>
           </div>
