@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 
 declare global {
   interface Window {
@@ -24,7 +24,7 @@ declare global {
               locale?: string;
             }
           ) => void;
-          prompt: () => void;
+          prompt?: (momentListener?: any) => void;
         };
       };
     };
@@ -60,7 +60,7 @@ interface GoogleAuthButtonProps {
   isLoading?: boolean;
 }
 
-const GoogleAuthButtonComponent: React.FC<GoogleAuthButtonProps> = ({
+export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   text = 'continue_with',
   onCredential,
   onError,
@@ -68,9 +68,7 @@ const GoogleAuthButtonComponent: React.FC<GoogleAuthButtonProps> = ({
   isLoading = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [gisLoaded, setGisLoaded] = useState<boolean>(false);
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID?.trim() || '';
-
   const onCredentialRef = useRef(onCredential);
   const onErrorRef = useRef(onError);
 
@@ -79,176 +77,116 @@ const GoogleAuthButtonComponent: React.FC<GoogleAuthButtonProps> = ({
     onErrorRef.current = onError;
   });
 
-  const initializedClientIdRef = useRef<string | null>(null);
-  const renderedTextRef = useRef<string | null>(null);
+  const renderGoogleButton = useCallback(() => {
+    if (!window.google?.accounts?.id || !containerRef.current || !clientId) {
+      return;
+    }
+
+    const containerWidth = containerRef.current.offsetWidth || 350;
+    // Google GIS allows width between 200px and 400px
+    const width = Math.min(400, Math.max(200, Math.floor(containerWidth)));
+
+    containerRef.current.innerHTML = '';
+    window.google.accounts.id.renderButton(containerRef.current, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      text: text,
+      shape: 'rectangular',
+      logo_alignment: 'center',
+      width: width,
+      locale: 'en',
+    });
+  }, [clientId, text]);
 
   useEffect(() => {
-    if (window.google?.accounts?.id) {
-      setGisLoaded(true);
-      return;
-    }
+    if (!clientId) return;
 
-    const checkGis = () => {
-      if (window.google?.accounts?.id) {
-        setGisLoaded(true);
-        return true;
-      }
-      return false;
+    const initGIS = () => {
+      window.google?.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response) => {
+          if (response?.credential) {
+            onCredentialRef.current(response.credential);
+          } else {
+            onErrorRef.current?.('Google returned an empty credential. Please try again.');
+          }
+        },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      renderGoogleButton();
     };
 
-    if (checkGis()) return;
-
-    let script = document.querySelector(
-      'script[src*="accounts.google.com/gsi/client"]'
-    ) as HTMLScriptElement;
-
-    if (!script) {
-      script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client?hl=en';
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    }
-
-    const interval = setInterval(() => {
-      if (checkGis()) {
-        clearInterval(interval);
-      }
-    }, 150);
-
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-    }, 7000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!gisLoaded || !clientId || !containerRef.current) {
-      return;
-    }
-
-    try {
-      if (initializedClientIdRef.current !== clientId) {
-        window.google?.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response) => {
-            if (response?.credential) {
-              onCredentialRef.current(response.credential);
-            } else {
-              onErrorRef.current?.('Google returned an empty credential. Please try again.');
-            }
-          },
-          auto_select: false,
-          cancel_on_tap_outside: true,
-        });
-        initializedClientIdRef.current = clientId;
-      }
-
-      const shouldRender =
-        !containerRef.current.hasChildNodes() || renderedTextRef.current !== text;
-
-      if (shouldRender) {
-        containerRef.current.innerHTML = '';
-        window.google?.accounts.id.renderButton(containerRef.current, {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          text: text,
-          shape: 'rectangular',
-          logo_alignment: 'left',
-          width: 380,
-          locale: 'en',
-        });
-        renderedTextRef.current = text;
-      }
-    } catch (err: any) {
-      console.error('Error initializing Google GIS button:', err);
-      onErrorRef.current?.(err?.message || 'Failed to initialize Google Sign-In');
-    }
-  }, [gisLoaded, clientId, text]);
-
-  const handleFallbackClick = () => {
-    if (!clientId) {
-      onErrorRef.current?.(
-        'Google OAuth Client ID is not configured. Please add VITE_GOOGLE_CLIENT_ID to your frontend .env file.'
-      );
-      return;
-    }
     if (window.google?.accounts?.id) {
-      window.google.accounts.id.prompt();
+      initGIS();
     } else {
-      onErrorRef.current?.('Google Identity Services is still loading. Please wait a moment and try again.');
-    }
-  };
+      let script = document.querySelector(
+        'script[src*="accounts.google.com/gsi/client"]'
+      ) as HTMLScriptElement;
 
-  const buttonLabel =
-    text === 'signin_with'
-      ? 'Sign in with Google'
-      : text === 'signup_with'
-      ? 'Sign up with Google'
-      : 'Continue with Google';
+      if (!script) {
+        script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client?hl=en';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+
+      script.addEventListener('load', initGIS);
+      return () => {
+        script.removeEventListener('load', initGIS);
+      };
+    }
+  }, [clientId, renderGoogleButton]);
+
+  // Handle responsive resizing cleanly
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        renderGoogleButton();
+      }, 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, [renderGoogleButton]);
+
+  if (!clientId) {
+    return (
+      <div style={{ textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', padding: '0.5rem' }}>
+        Google authentication is not configured.
+      </div>
+    );
+  }
 
   return (
-    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {clientId ? (
-        <div
-          ref={containerRef}
-          style={{
-            minHeight: '44px',
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            pointerEvents: disabled || isLoading ? 'none' : 'auto',
-            opacity: disabled || isLoading ? 0.6 : 1,
-          }}
-        />
-      ) : (
-        <button
-          type="button"
-          onClick={handleFallbackClick}
-          disabled={disabled || isLoading}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.75rem',
-            padding: '0.65rem 1rem',
-            backgroundColor: '#ffffff',
-            border: '1px solid #dadce0',
-            borderRadius: '6px',
-            color: '#3c4043',
-            fontSize: '0.9rem',
-            fontWeight: 500,
-            cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
-            boxShadow: '0 1px 2px rgba(60, 64, 67, 0.08)',
-            transition: 'background-color 0.2s, box-shadow 0.2s, border-color 0.2s',
-            opacity: disabled || isLoading ? 0.6 : 1,
-          }}
-          onMouseEnter={(e) => {
-            if (!disabled && !isLoading) {
-              e.currentTarget.style.backgroundColor = '#f8f9fa';
-              e.currentTarget.style.borderColor = '#c6c9cc';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!disabled && !isLoading) {
-              e.currentTarget.style.backgroundColor = '#ffffff';
-              e.currentTarget.style.borderColor = '#dadce0';
-            }
-          }}
-        >
-          <GoogleIcon size={20} />
-          <span>{isLoading ? 'Connecting with Google...' : buttonLabel}</span>
-        </button>
-      )}
+    <div
+      style={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '44px',
+        opacity: disabled || isLoading ? 0.6 : 1,
+        pointerEvents: disabled || isLoading ? 'none' : 'auto',
+      }}
+    >
+      <div
+        ref={containerRef}
+        style={{
+          width: '100%',
+          maxWidth: '400px',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
     </div>
   );
 };
-
-export const GoogleAuthButton = React.memo(GoogleAuthButtonComponent);
