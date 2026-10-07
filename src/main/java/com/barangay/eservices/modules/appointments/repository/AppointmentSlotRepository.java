@@ -21,11 +21,11 @@ public interface AppointmentSlotRepository extends JpaRepository<AppointmentSlot
 
     Optional<AppointmentSlot> findBySlotDateAndStartTimeAndEndTime(LocalDate slotDate, LocalTime startTime, LocalTime endTime);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("UPDATE AppointmentSlot s SET s.bookedCount = s.bookedCount + 1 WHERE s.id = :id AND s.bookedCount < s.maxCapacity AND s.isActive = true")
     int reserveSlotAtomically(@Param("id") Long id);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying
     @Query("UPDATE AppointmentSlot s SET s.bookedCount = CASE WHEN s.bookedCount > 0 THEN s.bookedCount - 1 ELSE 0 END WHERE s.id = :id")
     int releaseSlotAtomically(@Param("id") Long id);
 }

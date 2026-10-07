@@ -15,6 +15,8 @@ import com.barangay.eservices.modules.audit.service.AuditLogService;
 import com.barangay.eservices.modules.users.entity.User;
 import com.barangay.eservices.modules.users.repository.UserRepository;
 import com.barangay.eservices.security.SecurityUtil;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private AppointmentSlotRepository slotRepository;
@@ -72,9 +77,9 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new SlotFullException("Appointment slot was just booked by another resident. Please select another slot.");
         }
 
-        // Return refreshed slot
-        return slotRepository.findById(slotId)
-                .orElseThrow(() -> new ResourceNotFoundException("AppointmentSlot", "id", slotId));
+        // Refresh the specific slot entity so its bookedCount reflects the atomic update
+        entityManager.refresh(slot);
+        return slot;
     }
 
     @Override
@@ -162,8 +167,9 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         User currentUser = SecurityUtil.getCurrentUserId() != null 
                 ? userRepository.findById(SecurityUtil.getCurrentUserId()).orElse(null) : null;
+        String requestRef = (appointment.getDocumentRequest() != null) ? appointment.getDocumentRequest().getReferenceNumber() : "N/A";
         auditLogService.logAction(currentUser, "APPOINTMENT_RESCHEDULED", "Appointment", appointment.getId().toString(),
-                "Rescheduled appointment for request " + appointment.getDocumentRequest().getReferenceNumber() +
+                "Rescheduled appointment for request " + requestRef +
                 " to " + newSlot.getSlotDate() + " " + newSlot.getStartTime());
 
         return AppointmentMapper.toAppointmentDTO(updated);
