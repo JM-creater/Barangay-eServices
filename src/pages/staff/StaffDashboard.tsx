@@ -21,6 +21,10 @@ import {
   Coins,
   Receipt,
   FileHeart,
+  Sparkles,
+  Bot,
+  Zap,
+  Cpu,
 } from 'lucide-react';
 
 export const StaffDashboard: React.FC = () => {
@@ -263,6 +267,103 @@ export const StaffDashboard: React.FC = () => {
             </Link>
           </Card>
         </div>
+
+        {/* AI Operations & Workload Advisor */}
+        <Card
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Cpu size={20} color="#1E4E8C" />
+                <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0F2A4A' }}>
+                  AI Operations & Fast-Track Triage Engine
+                </span>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontFamily: 'monospace',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    backgroundColor: '#EFF5FC',
+                    color: '#1E4E8C',
+                    border: '1px solid #BCD5F0',
+                  }}
+                >
+                  Active
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="ai-badge-fasttrack">
+                  <Zap size={12} /> ONNX Native &lt;1ms
+                </span>
+                <Link to="/staff/requests">
+                  <Button size="sm" variant="primary" style={{ backgroundColor: '#1E4E8C' }}>
+                    Open AI Triage Queue
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          }
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: '1rem',
+            }}
+          >
+            <div
+              style={{
+                padding: '14px',
+                backgroundColor: '#F8FAFC',
+                borderRadius: '10px',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <Zap size={18} color="#2E8B57" />
+                <strong style={{ fontSize: '0.9rem', color: '#0F2A4A' }}>Sub-Millisecond Turnaround Classifier</strong>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748B', lineHeight: 1.5 }}>
+                In-memory neural classifier evaluates required documentary evidence to flag fast-track candidates and prioritize review.
+              </p>
+            </div>
+
+            <div
+              style={{
+                padding: '14px',
+                backgroundColor: '#F8FAFC',
+                borderRadius: '10px',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <Sparkles size={18} color="#1E4E8C" />
+                <strong style={{ fontSize: '0.9rem', color: '#0F2A4A' }}>1-Click Official Remarks Generator</strong>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748B', lineHeight: 1.5 }}>
+                Available inside each application review modal to generate polite correction notices, endorsements, and rejection statements.
+              </p>
+            </div>
+
+            <div
+              style={{
+                padding: '14px',
+                backgroundColor: '#F8FAFC',
+                borderRadius: '10px',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <Bot size={18} color="#D97706" />
+                <strong style={{ fontSize: '0.9rem', color: '#0F2A4A' }}>Citizen AI Assistant 24/7</strong>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748B', lineHeight: 1.5 }}>
+                Reduces physical front-desk queries by answering citizen questions on requirements, fees, and office hours online.
+              </p>
+            </div>
+          </div>
+        </Card>
 
         {/* Detailed Breakdown Grid */}
         <div className="grid-2">

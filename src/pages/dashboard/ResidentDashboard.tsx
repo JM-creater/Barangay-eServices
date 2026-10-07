@@ -21,7 +21,11 @@ import {
   ArrowRight,
   Eye,
   AlertTriangle,
+  Sparkles,
+  Bot,
+  Zap,
 } from 'lucide-react';
+import { triggerBarangayAi } from '../../components/ai/BarangayAiAssistant';
 
 export const ResidentDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -201,6 +205,127 @@ export const ResidentDashboard: React.FC = () => {
           )}
         </div>
 
+        {/* Barangay AI Assistant Interactive Guidance */}
+        <div className="ai-banner-callout">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: '#1E4E8C',
+                color: '#F2B600',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Bot size={22} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0F2A4A', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span>Barangay Cansojong AI Citizen Assistant</span>
+                <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', backgroundColor: '#DCFCE7', color: '#166534', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                  24/7 Available
+                </span>
+              </div>
+              <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#475569' }}>
+                Need instant information on fees, requirements, or appointment schedules? Click a prompt below:
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            {needsCorrection.length > 0 ? (
+              <button
+                type="button"
+                className="ai-chip-button"
+                style={{ backgroundColor: '#FEF3C7', color: '#B45309', borderColor: '#F59E0B', fontWeight: 700 }}
+                onClick={() =>
+                  triggerBarangayAi(
+                    `What documents do I need to rectify for application ${needsCorrection[0].referenceNumber}?`,
+                    { page: 'dashboard', referenceNumber: needsCorrection[0].referenceNumber }
+                  )
+                }
+              >
+                ⚠️ Fix {needsCorrection[0].referenceNumber}
+              </button>
+            ) : readyOrReleased.length > 0 ? (
+              <button
+                type="button"
+                className="ai-chip-button"
+                style={{ backgroundColor: '#DCFCE7', color: '#166534', borderColor: '#22C55E', fontWeight: 700 }}
+                onClick={() =>
+                  triggerBarangayAi(
+                    `What do I need to bring when claiming my approved document ${readyOrReleased[0].referenceNumber}?`,
+                    { page: 'dashboard', referenceNumber: readyOrReleased[0].referenceNumber }
+                  )
+                }
+              >
+                🎉 Claiming {readyOrReleased[0].referenceNumber}
+              </button>
+            ) : null}
+
+            {appointments.length > 0 && (
+              <button
+                type="button"
+                className="ai-chip-button"
+                onClick={() =>
+                  triggerBarangayAi("What are the guidelines and ID requirements for my pickup appointment slot?", { page: 'dashboard' })
+                }
+              >
+                📅 Appointment Guidelines
+              </button>
+            )}
+
+            <button
+              type="button"
+              className="ai-chip-button"
+              onClick={() =>
+                triggerBarangayAi("What are the requirements for Barangay Clearance?", { page: 'dashboard', serviceCode: 'BC-CLEARANCE' })
+              }
+            >
+              📄 Clearance Requirements
+            </button>
+            <button
+              type="button"
+              className="ai-chip-button"
+              onClick={() =>
+                triggerBarangayAi("How much does a Barangay Business Permit cost?", { page: 'dashboard', serviceCode: 'BC-BUSINESS' })
+              }
+            >
+              💰 Business Permit Fees
+            </button>
+            <button
+              type="button"
+              className="ai-chip-button"
+              onClick={() =>
+                triggerBarangayAi("How to apply for Certificate of Indigency?", { page: 'dashboard', serviceCode: 'BC-INDIGENCY' })
+              }
+            >
+              🤝 Certificate of Indigency
+            </button>
+            <button
+              type="button"
+              className="ai-chip-button"
+              onClick={() =>
+                triggerBarangayAi("What are the Barangay Hall office hours and location?", { page: 'dashboard' })
+              }
+            >
+              ⏰ Office Hours & Location
+            </button>
+            <Button
+              size="sm"
+              variant="primary"
+              style={{ backgroundColor: '#1E4E8C', gap: '6px' }}
+              onClick={() => triggerBarangayAi(undefined, { page: 'dashboard' })}
+            >
+              <Sparkles size={14} color="#F2B600" /> Ask AI
+            </Button>
+          </div>
+        </div>
+
         {/* Recent Applications Section */}
         <Card
           title="Recent Applications"
@@ -270,9 +395,14 @@ export const ResidentDashboard: React.FC = () => {
                   }}
                 >
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: 700, color: '#1E4E8C' }}>{r.referenceNumber}</span>
                       <Badge status={r.currentStatus} />
+                      {r.currentStatus === 'NEEDS_CORRECTION' ? (
+                        <span className="ai-badge-correction"><AlertTriangle size={11} /> Correction Risk</span>
+                      ) : (r.currentStatus === 'SUBMITTED' || r.currentStatus === 'UNDER_REVIEW') ? (
+                        <span className="ai-badge-fasttrack"><Zap size={11} /> Fast-Track (~24h)</span>
+                      ) : null}
                     </div>
                     <div style={{ fontSize: '0.875rem', color: '#1F2933', marginTop: '0.2rem' }}>
                       {r.service?.name} • Purpose: {r.purpose}
