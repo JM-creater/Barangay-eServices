@@ -110,6 +110,13 @@
             <scope>compile</scope>
         </dependency>
 
+        <!-- Microsoft ONNX Runtime (Native In-Memory JVM Execution) -->
+        <dependency>
+            <groupId>com.microsoft.onnxruntime</groupId>
+            <artifactId>onnxruntime</artifactId>
+            <version>1.17.1</version>
+        </dependency>
+
         <!-- Test Starter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
