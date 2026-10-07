@@ -8,7 +8,8 @@ import { Table } from '../../components/common/Table';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { formatDateTime, formatDate } from '../../utils/formatters';
-import { Plus, Eye, Calendar, FileText } from 'lucide-react';
+import { Plus, Eye, Calendar, FileText, Zap, AlertTriangle, Sparkles, ShieldCheck } from 'lucide-react';
+import { triggerBarangayAi } from '../../components/ai/BarangayAiAssistant';
 
 export const ResidentRequests: React.FC = () => {
   const [requests, setRequests] = useState<DocumentRequest[]>([]);
@@ -55,6 +56,30 @@ export const ResidentRequests: React.FC = () => {
       accessor: (r: DocumentRequest) => <Badge status={r.currentStatus} />,
     },
     {
+      header: 'AI Assessment',
+      accessor: (r: DocumentRequest) => {
+        if (r.currentStatus === 'NEEDS_CORRECTION') {
+          return (
+            <span className="ai-badge-correction" title="AI Flagged: Missing or defective documents">
+              <AlertTriangle size={12} /> Needs Correction
+            </span>
+          );
+        }
+        if (r.currentStatus === 'SUBMITTED' || r.currentStatus === 'UNDER_REVIEW') {
+          return (
+            <span className="ai-badge-fasttrack" title="Estimated turnaround: ~24 hours">
+              <Zap size={12} /> Fast-Track (~24h)
+            </span>
+          );
+        }
+        return (
+          <span className="ai-badge-standard" title="Standard review procedure">
+            <ShieldCheck size={12} /> Standard
+          </span>
+        );
+      },
+    },
+    {
       header: 'Appointment',
       accessor: (r: DocumentRequest) =>
         r.appointment ? (
@@ -99,6 +124,48 @@ export const ResidentRequests: React.FC = () => {
             <Plus size={16} /> New Application
           </Button>
         </Link>
+      </div>
+
+      {/* AI Assistance Callout */}
+      <div className="ai-banner-callout" style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
+              backgroundColor: '#1E4E8C',
+              color: '#F2B600',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Sparkles size={17} />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0F2A4A' }}>
+              Have questions about document requirements or pickup preparation?
+            </div>
+            <p style={{ margin: 0, fontSize: '0.78rem', color: '#475569' }}>
+              Our AI Assistant is available to help check payment amounts, physical requirements to bring, and schedule questions.
+            </p>
+          </div>
+        </div>
+        <Button
+          size="sm"
+          variant="primary"
+          style={{ backgroundColor: '#1E4E8C' }}
+          onClick={() =>
+            triggerBarangayAi(
+              "What documents do I need to bring when claiming my barangay clearance?",
+              { page: 'my-requests' }
+            )
+          }
+        >
+          Ask Barangay AI
+        </Button>
       </div>
 
       <Card>

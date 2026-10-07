@@ -23,8 +23,10 @@ import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminServices } from './pages/admin/AdminServices';
 import { AdminSlots } from './pages/admin/AdminSlots';
 import { AdminAuditLogs } from './pages/admin/AdminAuditLogs';
+import { AdminAiManagement } from './pages/admin/AdminAiManagement';
 import { NotFound } from './pages/404/NotFound';
 import { AdminRoute, ProtectedRoute, StaffRoute } from './routes';
+import { BarangayAiAssistant } from './components/ai/BarangayAiAssistant';
 
 export default function App() {
   return (
@@ -160,10 +162,19 @@ export default function App() {
               </AdminRoute>
             }
           />
+          <Route
+            path="/admin/ai"
+            element={
+              <AdminRoute>
+                <AdminAiManagement />
+              </AdminRoute>
+            }
+          />
 
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <BarangayAiAssistant />
       </BrowserRouter>
     </AuthProvider>
   );

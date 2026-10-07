@@ -7,7 +7,8 @@ import { Card } from '../../components/common/Card';
 import { Button } from '../../components/common/Button';
 import { ServicesCatalogSkeleton } from '../../components/skeletons';
 import { formatCurrency } from '../../utils/formatters';
-import { FileText, Clock, Banknote, CheckCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { FileText, Clock, Banknote, CheckCircle, ArrowRight, ShieldCheck, Sparkles, Bot, Zap } from 'lucide-react';
+import { triggerBarangayAi } from '../../components/ai/BarangayAiAssistant';
 
 export const ServicesCatalog: React.FC = () => {
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -47,6 +48,46 @@ export const ServicesCatalog: React.FC = () => {
             Browse available clearances, certificates, and permits issued by Barangay Cansojong. Review required
             supporting documents before submitting your request.
           </p>
+        </div>
+
+        {/* AI Citizen Assistant Guidance Callout */}
+        <div className="ai-banner-callout" style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                backgroundColor: '#1E4E8C',
+                color: '#F2B600',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Bot size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0F2A4A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>Unsure which document you need or what to prepare?</span>
+                <span style={{ fontSize: '10px', padding: '1px 6px', borderRadius: '4px', backgroundColor: '#DCFCE7', color: '#166534', fontWeight: 700 }}>
+                  Live Assistant
+                </span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: '#475569' }}>
+                Chat with the official Barangay AI for instant answers regarding requirements, fees, residency proof, and processing times.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="primary"
+            style={{ backgroundColor: '#1E4E8C', gap: '6px' }}
+            onClick={() => triggerBarangayAi("What document do I need for employment or school requirements?", { page: 'services' })}
+          >
+            <Sparkles size={14} color="#F2B600" /> Ask Barangay AI
+          </Button>
         </div>
 
         {loading ? (
@@ -103,8 +144,11 @@ export const ServicesCatalog: React.FC = () => {
                         <Clock size={20} color="#1E4E8C" />
                         <div>
                           <div style={{ fontSize: '0.75rem', color: '#616E7C' }}>Processing Time</div>
-                          <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1F2933' }}>
-                            {service.estimatedProcessingDays} business day(s)
+                          <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1F2933', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <span>{service.estimatedProcessingDays} business day(s)</span>
+                            <span className="ai-badge-fasttrack" style={{ fontSize: '0.68rem', padding: '1px 6px' }}>
+                              <Zap size={10} /> Fast-Track (~24h)
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -163,6 +207,41 @@ export const ServicesCatalog: React.FC = () => {
                         Apply Now <ArrowRight size={16} />
                       </Button>
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        triggerBarangayAi(
+                          `What are the requirements and procedure for ${service.name}?`,
+                          { page: 'services', serviceCode: service.serviceCode }
+                        )
+                      }
+                      style={{
+                        width: '100%',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        padding: '8px 12px',
+                        backgroundColor: '#EFF5FC',
+                        color: '#1E4E8C',
+                        border: '1px solid #BCD5F0',
+                        borderRadius: '8px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#1E4E8C';
+                        e.currentTarget.style.color = '#FFFFFF';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#EFF5FC';
+                        e.currentTarget.style.color = '#1E4E8C';
+                      }}
+                    >
+                      <Sparkles size={13} color="#F2B600" /> Ask AI About Requirements
+                    </button>
                   </div>
                 </div>
               </Card>
