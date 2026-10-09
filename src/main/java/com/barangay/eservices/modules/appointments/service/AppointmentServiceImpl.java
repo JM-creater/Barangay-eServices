@@ -8,6 +8,7 @@ import com.barangay.eservices.modules.appointments.dto.*;
 import com.barangay.eservices.modules.appointments.entity.Appointment;
 import com.barangay.eservices.modules.appointments.entity.AppointmentSlot;
 import com.barangay.eservices.modules.appointments.entity.AppointmentStatus;
+import com.barangay.eservices.modules.appointments.entity.Holiday;
 import com.barangay.eservices.modules.appointments.mapper.AppointmentMapper;
 import com.barangay.eservices.modules.appointments.repository.AppointmentRepository;
 import com.barangay.eservices.modules.appointments.repository.AppointmentSlotRepository;
@@ -26,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -110,29 +113,54 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public List<SlotDTO> batchCreateSlots(BatchCreateSlotRequest request) {
-        List<AppointmentSlot> createdSlots = new ArrayList<>();
-        LocalDate currentDate = request.getStartDate();
+        LocalDate startDate = request.getStartDate();
+        LocalDate endDate = request.getEndDate();
 
-        while (!currentDate.isAfter(request.getEndDate())) {
-            // Skip weekends (Saturday and Sunday) and configured office holidays
-            if (currentDate.getDayOfWeek().getValue() <= 5 && !holidayRepository.existsByHolidayDate(currentDate)) {
+        // 1. Pre-fetch all holidays in date range in 1 single query
+        List<Holiday> holidays =
+                holidayRepository.findByHolidayDateBetweenOrderByHolidayDateAsc(startDate, endDate);
+        Set<LocalDate> holidayDates = holidays.stream()
+                .map(Holiday::getHolidayDate)
+                .collect(Collectors.toSet());
+
+        // 2. Pre-fetch all existing slots in date range in 1 single query
+        List<AppointmentSlot> existingSlots =
+                slotRepository.findBySlotDateBetweenAndIsActiveTrueOrderBySlotDateAscStartTimeAsc(startDate, endDate);
+        Set<String> existingSlotKeys = existingSlots.stream()
+                .map(s -> s.getSlotDate().toString() + "_" + s.getStartTime().toString() + "_" + s.getEndTime().toString())
+                .collect(Collectors.toSet());
+
+        // 3. Prepare new slots in memory with zero database roundtrips
+        List<AppointmentSlot> slotsToCreate = new ArrayList<>();
+        LocalDate currentDate = startDate;
+
+        while (!currentDate.isAfter(endDate)) {
+            if (currentDate.getDayOfWeek().getValue() <= 5 && !holidayDates.contains(currentDate)) {
                 for (LocalTime startTime : request.getStartTimes()) {
                     LocalTime endTime = startTime.plusMinutes(request.getDurationMinutes());
-                    if (slotRepository.findBySlotDateAndStartTimeAndEndTime(currentDate, startTime, endTime).isEmpty()) {
-                        AppointmentSlot slot = new AppointmentSlot(
+                    String slotKey = currentDate.toString() + "_" + startTime.toString() + "_" + endTime.toString();
+                    if (!existingSlotKeys.contains(slotKey)) {
+                        slotsToCreate.add(new AppointmentSlot(
                                 currentDate,
                                 startTime,
                                 endTime,
                                 request.getCapacityPerSlot()
-                        );
-                        createdSlots.add(slotRepository.save(slot));
+                        ));
+                        existingSlotKeys.add(slotKey);
                     }
                 }
             }
             currentDate = currentDate.plusDays(1);
         }
 
-        return createdSlots.stream()
+        if (slotsToCreate.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 4. Batch save all slots in a single operation
+        List<AppointmentSlot> savedSlots = slotRepository.saveAll(slotsToCreate);
+
+        return savedSlots.stream()
                 .map(AppointmentMapper::toSlotDTO)
                 .collect(Collectors.toList());
     }

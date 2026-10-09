@@ -20,9 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -249,6 +251,20 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initAppointmentSlots() {
         LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusDays(13);
+
+        // 1. Pre-fetch holidays in date range in 1 single query
+        Set<LocalDate> holidayDates = holidayRepository.findByHolidayDateBetweenOrderByHolidayDateAsc(startDate, endDate)
+                .stream()
+                .map(com.barangay.eservices.modules.appointments.entity.Holiday::getHolidayDate)
+                .collect(Collectors.toSet());
+
+        // 2. Pre-fetch existing slots in date range in 1 single query
+        Set<String> existingKeys = slotRepository.findBySlotDateBetweenAndIsActiveTrueOrderBySlotDateAscStartTimeAsc(startDate, endDate)
+                .stream()
+                .map(s -> s.getSlotDate().toString() + "_" + s.getStartTime().toString() + "_" + s.getEndTime().toString())
+                .collect(Collectors.toSet());
+
         List<LocalTime> times = List.of(
                 LocalTime.of(8, 0),
                 LocalTime.of(9, 0),
@@ -260,18 +276,25 @@ public class DataInitializer implements CommandLineRunner {
                 LocalTime.of(16, 0)
         );
 
+        List<AppointmentSlot> newSlots = new ArrayList<>();
         for (int i = 0; i < 14; i++) {
             LocalDate date = startDate.plusDays(i);
             // Skip weekends (Saturday = 6, Sunday = 7) and holidays
-            if (date.getDayOfWeek().getValue() <= 5 && !holidayRepository.existsByHolidayDate(date)) {
+            if (date.getDayOfWeek().getValue() <= 5 && !holidayDates.contains(date)) {
                 for (LocalTime startTime : times) {
                     LocalTime endTime = startTime.plusHours(1);
-                    if (slotRepository.findBySlotDateAndStartTimeAndEndTime(date, startTime, endTime).isEmpty()) {
-                        AppointmentSlot slot = new AppointmentSlot(date, startTime, endTime, 10);
-                        slotRepository.save(slot);
+                    String key = date.toString() + "_" + startTime.toString() + "_" + endTime.toString();
+                    if (!existingKeys.contains(key)) {
+                        newSlots.add(new AppointmentSlot(date, startTime, endTime, 10));
+                        existingKeys.add(key);
                     }
                 }
             }
+        }
+
+        if (!newSlots.isEmpty()) {
+            slotRepository.saveAll(newSlots);
+            logger.info("Pre-seeded {} appointment slots for the next 14 days.", newSlots.size());
         }
     }
 }
