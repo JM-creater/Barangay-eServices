@@ -5,8 +5,10 @@ import com.barangay.eservices.modules.ai.service.AiGenerativeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ai")
+@Validated
 @Tag(name = "Generative AI Assistant", description = "Barangay AI Citizen Chatbot and administrative official remarks generation")
 public class AiGenerativeController {
 
@@ -39,9 +42,9 @@ public class AiGenerativeController {
     @GetMapping("/assistant/contextual-prompts")
     @Operation(summary = "Get context-aware suggested prompts tailored to current page, service, or application")
     public ResponseEntity<AiContextualPromptsResponse> getContextualPrompts(
-            @RequestParam(required = false) String page,
-            @RequestParam(required = false) String serviceCode,
-            @RequestParam(required = false) String referenceNumber) {
+            @RequestParam(required = false) @Size(max = 50, message = "Page name cannot exceed 50 characters") String page,
+            @RequestParam(required = false) @Size(max = 50, message = "Service code cannot exceed 50 characters") String serviceCode,
+            @RequestParam(required = false) @Size(max = 50, message = "Reference number cannot exceed 50 characters") String referenceNumber) {
         AiContextualPromptsResponse response = aiGenerativeService.getContextualPrompts(page, serviceCode, referenceNumber);
         return ResponseEntity.ok(response);
     }

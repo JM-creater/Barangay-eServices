@@ -2,7 +2,7 @@
   "model_name": "barangay_assistant_intent_classifier",
   "version": "1.0.0",
   "runtime_engine": "Microsoft ONNX Runtime Native (JVM In-Memory)",
-  "trained_at": "2026-10-08T09:07:47.043241",
+  "trained_at": "2026-10-09T16:32:47.486680",
   "accuracy": 0.9917695473251029,
   "cv_mean_accuracy": 0.9857585139318885,
   "total_records": 1615,

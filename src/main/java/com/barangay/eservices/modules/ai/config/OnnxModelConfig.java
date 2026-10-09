@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -43,6 +44,12 @@ public class OnnxModelConfig {
 
     private final ResourceLoader resourceLoader;
     private final ObjectMapper objectMapper;
+
+    private final ExecutorService assistantInferenceExecutor = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "onnx-assistant-worker");
+        t.setDaemon(true);
+        return t;
+    });
 
     private OrtEnvironment ortEnvironment;
 
@@ -534,6 +541,11 @@ public class OnnxModelConfig {
             return vector;
         }
 
+        // Defensive guard against CPU and memory exhaustion from oversized inputs
+        if (text.length() > 1000) {
+            text = text.substring(0, 1000);
+        }
+
         // Clean & tokenize
         String normalized = text.toLowerCase()
                 .replaceAll("[^a-z0-9\\s]", " ")
@@ -603,21 +615,33 @@ public class OnnxModelConfig {
 
         float[] probabilities = null;
 
-        // 1. Try native ONNX Runtime session in memory
+        // 1. Try native ONNX Runtime session in memory with timeout protection (2500ms)
         if (assistantOrtSession != null && ortEnvironment != null) {
             try {
-                try (OnnxTensor inputTensor = OnnxTensor.createTensor(ortEnvironment, new float[][]{tfidf})) {
-                    Map<String, OnnxTensor> inputs = Collections.singletonMap("tfidf_input", inputTensor);
-                    try (OrtSession.Result result = assistantOrtSession.run(inputs)) {
-                        Object outVal = result.get(0).getValue();
-                        if (outVal instanceof float[][]) {
-                            float[][] batchProbs = (float[][]) outVal;
-                            if (batchProbs.length > 0) {
-                                probabilities = batchProbs[0];
+                final float[] finalTfidf = tfidf;
+                CompletableFuture<float[]> future = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        try (OnnxTensor inputTensor = OnnxTensor.createTensor(ortEnvironment, new float[][]{finalTfidf})) {
+                            Map<String, OnnxTensor> inputs = Collections.singletonMap("tfidf_input", inputTensor);
+                            try (OrtSession.Result result = assistantOrtSession.run(inputs)) {
+                                Object outVal = result.get(0).getValue();
+                                if (outVal instanceof float[][]) {
+                                    float[][] batchProbs = (float[][]) outVal;
+                                    if (batchProbs.length > 0) {
+                                        return batchProbs[0];
+                                    }
+                                }
                             }
                         }
+                    } catch (Exception ex) {
+                        logger.debug("Native assistant ONNX session error: {}", ex.getMessage());
                     }
-                }
+                    return null;
+                }, assistantInferenceExecutor);
+
+                probabilities = future.get(2500, TimeUnit.MILLISECONDS);
+            } catch (TimeoutException te) {
+                logger.warn("Native ONNX assistant inference timed out (> 2500ms). Falling back to JVM forward pass.");
             } catch (Exception ex) {
                 logger.debug("Assistant ONNX session run exception: {}. Continuing to JVM forward pass.", ex.getMessage());
             }
@@ -901,6 +925,9 @@ public class OnnxModelConfig {
     @PreDestroy
     public synchronized void close() {
         try {
+            if (assistantInferenceExecutor != null) {
+                assistantInferenceExecutor.shutdownNow();
+            }
             if (ortSession != null) {
                 ortSession.close();
                 ortSession = null;
