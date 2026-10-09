@@ -59,12 +59,14 @@ export const StaffRequestList: React.FC = () => {
   const columns = [
     {
       header: 'Reference No.',
+      width: '140px',
       accessor: (r: DocumentRequest) => (
-        <span style={{ fontWeight: 700, color: '#1E4E8C' }}>{r.referenceNumber}</span>
+        <span style={{ fontWeight: 700, color: '#1E4E8C', whiteSpace: 'nowrap' }}>{r.referenceNumber}</span>
       ),
     },
     {
       header: 'Resident / Applicant',
+      width: '170px',
       accessor: (r: DocumentRequest) => (
         <div>
           <div style={{ fontWeight: 600 }}>{r.resident.fullName}</div>
@@ -74,6 +76,7 @@ export const StaffRequestList: React.FC = () => {
     },
     {
       header: 'Service',
+      width: '180px',
       accessor: (r: DocumentRequest) => (
         <div>
           <div style={{ fontWeight: 600 }}>{r.service.name}</div>
@@ -83,10 +86,12 @@ export const StaffRequestList: React.FC = () => {
     },
     {
       header: 'Status',
+      width: '160px',
       accessor: (r: DocumentRequest) => <Badge status={r.currentStatus} />,
     },
     {
       header: 'AI Assessment',
+      width: '160px',
       accessor: (r: DocumentRequest) => {
         const isNeedsCorrection = r.currentStatus === 'NEEDS_CORRECTION';
         const hasFiles = r.files && r.files.length > 0;
@@ -122,6 +127,7 @@ export const StaffRequestList: React.FC = () => {
                 backgroundColor: '#DCFCE7',
                 color: '#166534',
                 border: '1px solid #BBF7D0',
+                whiteSpace: 'nowrap',
               }}
             >
               <CheckCircle2 size={12} /> Verified
@@ -138,13 +144,14 @@ export const StaffRequestList: React.FC = () => {
     },
     {
       header: 'Appointment Slot',
+      width: '180px',
       accessor: (r: DocumentRequest) =>
         r.appointment ? (
           <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
               {formatDate(r.appointment.appointmentDate)}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', whiteSpace: 'nowrap' }}>
               {formatTime(r.appointment.appointmentTime)} ({r.appointment.status})
             </div>
           </div>
@@ -154,14 +161,16 @@ export const StaffRequestList: React.FC = () => {
     },
     {
       header: 'Submitted',
+      width: '160px',
       accessor: (r: DocumentRequest) => (
-        <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
+        <span style={{ fontSize: '0.85rem', color: '#64748b', whiteSpace: 'nowrap' }}>
           {formatDateTime(r.createdAt)}
         </span>
       ),
     },
     {
       header: 'Action',
+      width: '100px',
       accessor: (r: DocumentRequest) => (
         <Link to={`/staff/requests/${r.id}`}>
           <Button variant="primary" size="sm">
@@ -333,6 +342,7 @@ export const StaffRequestList: React.FC = () => {
             keyExtractor={(r) => r.id}
             isLoading={loading}
             emptyMessage="No applications match the selected filters."
+            minWidth="1100px"
           />
 
           {totalPages > 1 && (

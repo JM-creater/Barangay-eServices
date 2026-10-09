@@ -17,6 +17,7 @@ export const Badge: React.FC<BadgeProps> = ({ status, variant = 'neutral', child
           color: config.color,
           backgroundColor: config.bg,
           border: `1px solid ${config.border}`,
+          whiteSpace: 'nowrap',
         }}
       >
         <span
@@ -25,6 +26,7 @@ export const Badge: React.FC<BadgeProps> = ({ status, variant = 'neutral', child
             height: '6px',
             borderRadius: '50%',
             backgroundColor: config.color,
+            flexShrink: 0,
           }}
         />
         {config.label}
@@ -50,6 +52,7 @@ export const Badge: React.FC<BadgeProps> = ({ status, variant = 'neutral', child
         color: style.color,
         backgroundColor: style.bg,
         border: `1px solid ${style.border}`,
+        whiteSpace: 'nowrap',
       }}
     >
       {children}

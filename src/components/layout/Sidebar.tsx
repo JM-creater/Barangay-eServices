@@ -43,6 +43,10 @@ export const Sidebar: React.FC = () => {
         flexDirection: 'column',
         gap: '0.5rem',
         flexShrink: 0,
+        position: 'sticky',
+        top: '65px',
+        height: 'calc(100vh - 65px)',
+        overflowY: 'auto',
       }}
     >
       {/* Resident Menu */}

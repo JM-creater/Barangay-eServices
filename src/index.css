@@ -72,8 +72,14 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+  scrollbar-gutter: stable;
+}
+
 html, body {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -130,6 +136,54 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+.app-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  background-color: #0F2A4A;
+  color: #FFFFFF;
+  border-bottom: 3px solid #F2B600;
+  box-shadow: 0 4px 16px -2px rgba(15, 42, 74, 0.2), 0 2px 4px -2px rgba(15, 42, 74, 0.1);
+  will-change: transform;
+}
+
+.header-notif-dropdown {
+  position: absolute;
+  right: 0;
+  margin-top: 0.65rem;
+  width: 340px;
+  max-width: calc(100vw - 24px);
+  background-color: #FFFFFF;
+  color: #1F2933;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 42, 74, 0.25);
+  border: 1px solid #DDE3EA;
+  z-index: 110;
+  max-height: min(450px, 75vh);
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .header-notif-dropdown {
+    position: fixed !important;
+    top: 68px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    margin-top: 0 !important;
+    box-shadow: 0 12px 36px rgba(15, 42, 74, 0.3) !important;
+  }
+}
+
+body.mobile-menu-active .ai-assistant-fab,
+body.mobile-menu-active .ai-assistant-window {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(20px) scale(0.9) !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
 }
 
 .main-content {
@@ -256,6 +310,8 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.775rem;
   font-weight: 600;
   border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .table-container {
@@ -283,6 +339,7 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 .custom-table td {
@@ -936,6 +993,8 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #DCFCE7;
   color: #166534;
   border: 1px solid #BBF7D0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ai-badge-standard {
@@ -949,6 +1008,8 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #EFF5FC;
   color: #1E4E8C;
   border: 1px solid #BCD5F0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ai-badge-correction {
@@ -962,6 +1023,8 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #FEF3C7;
   color: #92400E;
   border: 1px solid #FDE68A;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .ai-banner-callout {
@@ -1112,4 +1175,75 @@ h1, h2, h3, h4, h5, h6 {
   color: #64748B;
   font-style: italic;
   margin-top: 4px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 transparent;
+}
+
+*:hover {
+  scrollbar-color: #94A3B8 transparent;
+}
+
+/* WebKit & Chromium Browsers (Chrome, Edge, Brave, Opera, Safari) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+
+
+
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #CBD5E1;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: content-box; /* Produces an elegant inset floating pill effect */
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #94A3B8;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--primary); /* Barangay Royal Blue #1E4E8C on click/drag */
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Internal Scroll Containers (Modals, Chat, Tables, Dropdowns) */
+.modal-content::-webkit-scrollbar,
+.table-container::-webkit-scrollbar,
+.tabs-scroll-container::-webkit-scrollbar,
+.tracking-stepper-wrapper::-webkit-scrollbar,
+.header-notif-dropdown::-webkit-scrollbar,
+.mobile-nav-drawer::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.modal-content::-webkit-scrollbar-thumb,
+.table-container::-webkit-scrollbar-thumb,
+.tabs-scroll-container::-webkit-scrollbar-thumb,
+.tracking-stepper-wrapper::-webkit-scrollbar-thumb,
+.header-notif-dropdown::-webkit-scrollbar-thumb,
+.mobile-nav-drawer::-webkit-scrollbar-thumb {
+  background-color: #D1D5DB;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover,
+.table-container::-webkit-scrollbar-thumb:hover,
+.tabs-scroll-container::-webkit-scrollbar-thumb:hover,
+.tracking-stepper-wrapper::-webkit-scrollbar-thumb:hover,
+.header-notif-dropdown::-webkit-scrollbar-thumb:hover,
+.mobile-nav-drawer::-webkit-scrollbar-thumb:hover {
+  background-color: #9CA3AF;
 }
