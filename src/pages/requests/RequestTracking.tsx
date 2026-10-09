@@ -454,7 +454,7 @@ export const RequestTracking: React.FC = () => {
                     {request.files.map((f) => (
                       <a
                         key={f.id}
-                        href={getFileDownloadUrl(f.storedFileName, f.fileUrl)}
+                        href={getFileDownloadUrl(f.storedFileName, f.fileUrl, request?.referenceNumber)}
                         target="_blank"
                         rel="noreferrer"
                         style={{
