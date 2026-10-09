@@ -1,7 +1,9 @@
 package com.barangay.eservices.modules.notifications.service;
 
 import com.barangay.eservices.dto.PaginatedResponse;
+import com.barangay.eservices.exception.ApiException;
 import com.barangay.eservices.exception.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
 import com.barangay.eservices.modules.notifications.dto.NotificationDTO;
 import com.barangay.eservices.modules.notifications.entity.Notification;
 import com.barangay.eservices.modules.notifications.entity.NotificationType;
@@ -100,6 +102,13 @@ public class NotificationServiceImpl implements NotificationService {
     public void markAsRead(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification", "id", notificationId));
+
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        if (currentUserId != null && notification.getRecipient() != null
+                && !currentUserId.equals(notification.getRecipient().getId())) {
+            throw new ApiException("You are not authorized to modify this notification", HttpStatus.FORBIDDEN);
+        }
+
         notification.setIsRead(true);
         notificationRepository.save(notification);
     }

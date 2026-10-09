@@ -24,6 +24,9 @@ public class RateLimitingProperties {
     @Value("${app.rate-limiting.upload-limit}")
     private int uploadLimit;
 
+    @Value("${app.rate-limiting.ai-limit}")
+    private int aiLimit;
+
     @Value("${app.rate-limiting.staff-limit}")
     private int staffLimit;
 
@@ -73,6 +76,14 @@ public class RateLimitingProperties {
 
     public void setUploadLimit(int uploadLimit) {
         this.uploadLimit = uploadLimit;
+    }
+
+    public int getAiLimit() {
+        return aiLimit > 0 ? aiLimit : 20;
+    }
+
+    public void setAiLimit(int aiLimit) {
+        this.aiLimit = aiLimit;
     }
 
     public int getStaffLimit() {

@@ -1,8 +1,10 @@
 package com.barangay.eservices.modules.requests.service;
 
 import com.barangay.eservices.dto.PaginatedResponse;
+import com.barangay.eservices.exception.ApiException;
 import com.barangay.eservices.exception.BadRequestException;
 import com.barangay.eservices.exception.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
 import com.barangay.eservices.modules.appointments.entity.Appointment;
 import com.barangay.eservices.modules.appointments.entity.AppointmentSlot;
 import com.barangay.eservices.modules.appointments.entity.AppointmentStatus;
@@ -236,6 +238,18 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
     public RequestResponseDTO getRequestById(Long id) {
         DocumentRequest request = requestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DocumentRequest", "id", id));
+
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        boolean isOwner = request.getResident() != null && currentUserId != null
+                && currentUserId.equals(request.getResident().getId());
+        boolean isStaffOrAdmin = SecurityUtil.hasRole("ROLE_STAFF")
+                || SecurityUtil.hasRole("ROLE_APPROVER")
+                || SecurityUtil.hasRole("ROLE_ADMIN");
+
+        if (!isOwner && !isStaffOrAdmin) {
+            throw new ApiException("You are not authorized to view this request", HttpStatus.FORBIDDEN);
+        }
+
         if (request.getHistory() != null) {
             request.getHistory().size();
         }
@@ -517,6 +531,16 @@ public class DocumentRequestServiceImpl implements DocumentRequestService {
         Long residentId = SecurityUtil.getCurrentUserId();
         User currentUser = userRepository.findById(residentId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", residentId));
+
+        boolean isOwner = request.getResident() != null && residentId != null
+                && residentId.equals(request.getResident().getId());
+        boolean isStaffOrAdmin = SecurityUtil.hasRole("ROLE_STAFF")
+                || SecurityUtil.hasRole("ROLE_APPROVER")
+                || SecurityUtil.hasRole("ROLE_ADMIN");
+
+        if (!isOwner && !isStaffOrAdmin) {
+            throw new ApiException("You are not authorized to cancel this request", HttpStatus.FORBIDDEN);
+        }
 
         if (request.getCurrentStatus() == RequestStatus.RELEASED || request.getCurrentStatus() == RequestStatus.CANCELLED) {
             throw new BadRequestException("Request cannot be cancelled in status: " + request.getCurrentStatus());
