@@ -21,10 +21,12 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { formatDateTime } from '../../utils/formatters';
+import { useModalMobileAIButton } from '../../hooks/useModalMobileAIButton';
 
 export const Header: React.FC = () => {
   const { user, isAuthenticated, isResident, isStaff, isApprover, isAdmin, logout } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { modalMobile, setModalMobile } = useModalMobileAIButton();
   const [showNotifs, setShowNotifs] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(false);
@@ -159,7 +161,7 @@ export const Header: React.FC = () => {
         borderBottom: '3px solid #F2B600',
         position: 'sticky',
         top: 0,
-        zIndex: 50,
+        zIndex: 100,
         boxShadow: '0 4px 14px rgba(15, 42, 74, 0.15)',
       }}
     >
@@ -584,17 +586,13 @@ export const Header: React.FC = () => {
 
                 {showNotifs && (
                   <div
+                    className="header-notif-dropdown"
                     style={{
-                      position: 'absolute',
-                      right: '-0.5rem',
-                      marginTop: '0.65rem',
-                      width: 'min(340px, calc(100vw - 1.5rem))',
                       backgroundColor: '#FFFFFF',
                       color: '#1F2933',
                       borderRadius: '12px',
-                      boxShadow: '0 10px 30px rgba(15, 42, 74, 0.25)',
                       border: '1px solid #DDE3EA',
-                      zIndex: 100,
+                      zIndex: 110,
                       maxHeight: 'min(450px, 75vh)',
                       overflowY: 'auto',
                     }}
@@ -790,7 +788,10 @@ export const Header: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={() => {
+              setMobileMenuOpen(!mobileMenuOpen);
+              setModalMobile(!modalMobile);
+            }}
             className="mobile-nav-toggle"
             style={{
               backgroundColor: 'rgba(255,255,255,0.12)',
@@ -808,6 +809,7 @@ export const Header: React.FC = () => {
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div
+          className="mobile-nav-drawer"
           style={{
             backgroundColor: '#0F2A4A',
             borderTop: '1px solid rgba(255, 255, 255, 0.1)',
@@ -815,6 +817,9 @@ export const Header: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             gap: '0.4rem',
+            maxHeight: 'calc(100vh - 72px)',
+            overflowY: 'auto',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {!isAuthenticated ? (

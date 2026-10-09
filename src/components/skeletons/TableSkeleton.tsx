@@ -11,12 +11,14 @@ interface TableSkeletonProps {
   columns?: TableSkeletonColumn[] | number;
   rowCount?: number;
   showHeader?: boolean;
+  minWidth?: string;
 }
 
 export const TableSkeleton: React.FC<TableSkeletonProps> = ({
   columns = 5,
   rowCount = 5,
   showHeader = true,
+  minWidth,
 }) => {
   const columnList: TableSkeletonColumn[] = typeof columns === 'number'
     ? Array.from({ length: columns }).map((_, i) => ({
@@ -26,7 +28,7 @@ export const TableSkeleton: React.FC<TableSkeletonProps> = ({
 
   return (
     <div className="table-container" aria-busy="true" aria-label="Loading table data">
-      <table className="custom-table">
+      <table className="custom-table" style={minWidth ? { minWidth } : undefined}>
         {showHeader && (
           <thead>
             <tr>

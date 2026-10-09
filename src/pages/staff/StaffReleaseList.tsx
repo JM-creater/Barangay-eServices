@@ -11,7 +11,6 @@ import { Link } from 'react-router-dom';
 
 export const StaffReleaseList: React.FC = () => {
   const [releases, setReleases] = useState<DocumentRelease[]>([]);
-  console.log("releases: ", releases)
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
