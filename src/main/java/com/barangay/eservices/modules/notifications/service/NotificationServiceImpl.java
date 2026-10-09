@@ -108,8 +108,6 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     public void markAllAsRead() {
         Long recipientId = SecurityUtil.getCurrentUserId();
-        List<Notification> list = notificationRepository.findByRecipientIdOrderByCreatedAtDesc(recipientId);
-        list.forEach(n -> n.setIsRead(true));
-        notificationRepository.saveAll(list);
+        notificationRepository.markAllAsReadByRecipientId(recipientId);
     }
 }
