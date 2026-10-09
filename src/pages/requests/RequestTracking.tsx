@@ -514,11 +514,13 @@ export const RequestTracking: React.FC = () => {
         )}
 
         {/* Official Transaction & Appointment Slip Modal */}
-        <PrintSlipModal
-          isOpen={showPrintSlipModal}
-          onClose={() => setShowPrintSlipModal(false)}
-          request={request}
-        />
+        {showPrintSlipModal && (
+          <PrintSlipModal
+            isOpen={showPrintSlipModal}
+            onClose={() => setShowPrintSlipModal(false)}
+            request={request}
+          />
+        )}
       </div>
     </Layout>
   );

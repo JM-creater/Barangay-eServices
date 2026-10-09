@@ -17,6 +17,18 @@ export const Modal: React.FC<ModalProps> = ({
   maxWidth = '550px',
 }) => {
   useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('mobile-menu-active');
+    } else {
+      document.body.classList.remove('mobile-menu-active');
+    }
+
+    return () => {
+      document.body.classList.remove('mobile-menu-active');
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
