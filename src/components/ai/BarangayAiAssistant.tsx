@@ -776,16 +776,28 @@ export const BarangayAiAssistant: React.FC = () => {
   );
 };
 
-// Safe markdown formatter for clear readability
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Safe markdown formatter: escapes raw HTML entities first to neutralize any XSS,
+// then applies strict, controlled markdown formatting for readability.
 function formatMarkdownToHtml(markdown: string): string {
-  let html = markdown
+  if (!markdown) return '';
+
+  const safeText = escapeHtml(markdown);
+
+  return safeText
     .replace(/^### (.*$)/gim, '<h4 style="margin: 6px 0 4px 0; font-size: 0.95rem; font-weight: 700; color: #0F2A4A;">$1</h4>')
     .replace(/^## (.*$)/gim, '<h3 style="margin: 8px 0 6px 0; font-size: 1.05rem; font-weight: 800; color: #1E4E8C;">$1</h3>')
     .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 700; color: #0F2A4A;">$1</strong>')
     .replace(/\*(.*?)\*/g, '<em style="color: #475569;">$1</em>')
     .replace(/^- (.*$)/gim, '<div style="display: flex; align-items: flex-start; gap: 6px; margin: 3px 0;"><span style="color: #1E4E8C; font-weight: 800;">•</span><span>$1</span></div>')
     .replace(/^• (.*$)/gim, '<div style="display: flex; align-items: flex-start; gap: 6px; margin: 3px 0;"><span style="color: #1E4E8C; font-weight: 800;">•</span><span>$1</span></div>');
-
-  return html;
 }
 export default BarangayAiAssistant;
