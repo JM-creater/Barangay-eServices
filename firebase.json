@@ -6,6 +6,22 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+          { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.googleusercontent.com https://*.amazonaws.com https://*.railway.app; connect-src 'self' http://localhost:8080 https://*.railway.app https://accounts.google.com; frame-src 'self' https://accounts.google.com; frame-ancestors 'self';"
+          }
+        ]
+      }
+    ],
     "rewrites": [
       {
         "source": "**",
