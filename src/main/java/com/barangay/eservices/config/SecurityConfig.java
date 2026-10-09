@@ -5,11 +5,13 @@ import com.barangay.eservices.security.CustomUserDetailsService;
 import com.barangay.eservices.security.JwtAuthenticationEntryPoint;
 import com.barangay.eservices.security.JwtAuthenticationFilter;
 import com.barangay.eservices.security.ratelimit.RateLimitingFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
@@ -33,6 +36,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CorsConfigurationSource corsConfigurationSource;
     private final RateLimitingFilter rateLimitingFilter;
+
+    @Value("${app.security.swagger.public:false}")
+    private boolean swaggerPublic;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
                           JwtAuthenticationEntryPoint unauthorizedHandler,
@@ -71,6 +77,20 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                        .contentTypeOptions(contentType -> {})
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
+                        .referrerPolicy(referrer -> referrer
+                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                        )
+                        .permissionsPolicy(permissions -> permissions
+                                .policy("camera=(), microphone=(), geolocation=()")
+                        )
+                )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
                         .accessDeniedHandler(accessDeniedHandler)
@@ -87,8 +107,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/ai/predict", "/api/ai/model-status", "/api/ai/assistant/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        // Swagger & API docs
-                        .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // Swagger & API docs (Restricted to ADMIN by default; public in dev if app.security.swagger.public=true)
+                        .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").access((authentication, context) ->
+                                new AuthorizationDecision(
+                                        swaggerPublic || (authentication != null && authentication.get() != null
+                                                && authentication.get().getAuthorities().stream()
+                                                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))
+                                )
+                        )
                         // AI Staff endpoints
                         .requestMatchers("/api/ai/generate-remarks", "/api/ai/model-reload").hasAnyRole("STAFF", "APPROVER", "ADMIN")
                         // Staff endpoints

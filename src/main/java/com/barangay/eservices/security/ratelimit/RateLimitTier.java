@@ -31,6 +31,12 @@ public enum RateLimitTier {
     FILE_UPLOAD,
 
     /**
+     * Stricter rate-limiting tier for public AI endpoints (/api/ai/predict, /api/ai/assistant/**)
+     * to protect native ONNX machine learning inference from denial-of-service and CPU exhaustion.
+     */
+    AI_PUBLIC,
+
+    /**
      * General tier for authenticated residents and standard API operations (e.g., 120 req/min).
      */
     GENERAL
