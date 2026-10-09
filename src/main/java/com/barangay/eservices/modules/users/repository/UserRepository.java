@@ -28,7 +28,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
     List<User> findByRoleName(@Param("roleName") RoleName roleName);
 
-    @Query("SELECT u FROM User u WHERE " +
+    @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.name = :roleName")
+    long countByRoleName(@Param("roleName") RoleName roleName);
+
+    @Query(value = "SELECT u FROM User u WHERE " +
+           "(:query IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\' OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\' OR " +
+           "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\' OR " +
+           "LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\')",
+           countQuery = "SELECT COUNT(u) FROM User u WHERE " +
            "(:query IS NULL OR LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\' OR " +
            "LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\' OR " +
            "LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%')) ESCAPE '\\' OR " +

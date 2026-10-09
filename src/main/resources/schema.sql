@@ -29,6 +29,9 @@ CREATE TABLE IF NOT EXISTS `users` (
     `city` VARCHAR(100) DEFAULT 'Talisay City',
     `province` VARCHAR(100) DEFAULT 'Cebu',
     `account_status` VARCHAR(20) DEFAULT 'ACTIVE',
+    `auth_provider` VARCHAR(20) DEFAULT 'LOCAL',
+    `google_id` VARCHAR(100),
+    `profile_picture_url` VARCHAR(500),
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -212,4 +215,44 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_reset_token_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ===================================================================
+-- 16. Performance & High-Efficiency Query Indexes
+-- ===================================================================
+
+-- Document Requests Indexes
+CREATE INDEX IF NOT EXISTS `idx_doc_req_resident_created` ON `document_requests` (`resident_id`, `created_at` DESC);
+CREATE INDEX IF NOT EXISTS `idx_doc_req_status_created` ON `document_requests` (`current_status`, `created_at` DESC);
+CREATE INDEX IF NOT EXISTS `idx_doc_req_service_status` ON `document_requests` (`service_id`, `current_status`);
+CREATE INDEX IF NOT EXISTS `idx_doc_req_dup_check` ON `document_requests` (`resident_id`, `service_id`, `current_status`);
+CREATE INDEX IF NOT EXISTS `idx_doc_req_created` ON `document_requests` (`created_at` DESC);
+
+-- Appointments Indexes
+CREATE INDEX IF NOT EXISTS `idx_appts_resident_date` ON `appointments` (`resident_id`, `appointment_date` DESC, `appointment_time` DESC);
+CREATE INDEX IF NOT EXISTS `idx_appts_date_status` ON `appointments` (`appointment_date`, `status`);
+CREATE INDEX IF NOT EXISTS `idx_appts_status_date_time` ON `appointments` (`status`, `appointment_date` DESC, `appointment_time` ASC);
+
+-- Appointment Slots Indexes
+CREATE INDEX IF NOT EXISTS `idx_slots_date_active_time` ON `appointment_slots` (`slot_date`, `is_active`, `start_time`);
+
+-- Notifications Indexes
+CREATE INDEX IF NOT EXISTS `idx_notif_recipient_created` ON `notifications` (`recipient_id`, `created_at` DESC);
+CREATE INDEX IF NOT EXISTS `idx_notif_recipient_unread` ON `notifications` (`recipient_id`, `is_read`);
+
+-- Audit Logs Indexes
+CREATE INDEX IF NOT EXISTS `idx_audit_created` ON `audit_logs` (`created_at` DESC);
+CREATE INDEX IF NOT EXISTS `idx_audit_entity_created` ON `audit_logs` (`entity_name`, `created_at` DESC);
+CREATE INDEX IF NOT EXISTS `idx_audit_action_created` ON `audit_logs` (`action`, `created_at` DESC);
+
+-- Document Releases Indexes
+CREATE INDEX IF NOT EXISTS `idx_release_date` ON `document_releases` (`release_date` DESC);
+CREATE INDEX IF NOT EXISTS `idx_release_payment_date` ON `document_releases` (`payment_status`, `release_date`);
+
+-- Users Indexes
+CREATE INDEX IF NOT EXISTS `idx_users_google_id` ON `users` (`google_id`);
+CREATE INDEX IF NOT EXISTS `idx_users_status` ON `users` (`account_status`);
+
+-- Request Status History Indexes
+CREATE INDEX IF NOT EXISTS `idx_history_req_created` ON `request_status_history` (`request_id`, `created_at` DESC);
+
 

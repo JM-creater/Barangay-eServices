@@ -4,6 +4,7 @@ import com.barangay.eservices.modules.appointments.entity.Appointment;
 import com.barangay.eservices.modules.appointments.entity.AppointmentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
+    @EntityGraph(attributePaths = {"documentRequest", "documentRequest.serviceItem", "slot"})
     List<Appointment> findByResidentIdOrderByAppointmentDateDescAppointmentTimeDesc(Long residentId);
 
     Optional<Appointment> findByDocumentRequestId(Long documentRequestId);
@@ -30,10 +32,17 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     long countByStatus(AppointmentStatus status);
 
-    @Query("SELECT a FROM Appointment a WHERE " +
+    @Query("SELECT a.status, COUNT(a) FROM Appointment a GROUP BY a.status")
+    List<Object[]> countAppointmentsGroupedByStatus();
+
+    @EntityGraph(attributePaths = {"documentRequest", "documentRequest.serviceItem", "resident", "slot"})
+    @Query(value = "SELECT a FROM Appointment a WHERE " +
            "(:date IS NULL OR a.appointmentDate = :date) AND " +
            "(:status IS NULL OR a.status = :status) " +
-           "ORDER BY a.appointmentDate DESC, a.appointmentTime ASC")
+           "ORDER BY a.appointmentDate DESC, a.appointmentTime ASC",
+           countQuery = "SELECT COUNT(a) FROM Appointment a WHERE " +
+           "(:date IS NULL OR a.appointmentDate = :date) AND " +
+           "(:status IS NULL OR a.status = :status)")
     Page<Appointment> findFilteredAppointments(@Param("date") LocalDate date, 
                                               @Param("status") AppointmentStatus status, 
                                               Pageable pageable);

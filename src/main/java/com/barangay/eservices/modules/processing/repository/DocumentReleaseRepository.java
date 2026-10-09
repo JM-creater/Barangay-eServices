@@ -3,6 +3,7 @@ package com.barangay.eservices.modules.processing.repository;
 import com.barangay.eservices.modules.processing.entity.DocumentRelease;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -20,11 +21,13 @@ public interface DocumentReleaseRepository extends JpaRepository<DocumentRelease
 
     Optional<DocumentRelease> findByIssuedDocumentNumber(String issuedDocumentNumber);
 
+    @EntityGraph(attributePaths = {"documentRequest", "documentRequest.serviceItem", "releasingOfficer", "officialApprover"})
     Page<DocumentRelease> findAllByOrderByReleaseDateDesc(Pageable pageable);
 
     @Query("SELECT COALESCE(SUM(r.paymentAmount), 0) FROM DocumentRelease r WHERE r.paymentStatus = 'PAID'")
     BigDecimal calculateTotalRevenue();
 
+    @EntityGraph(attributePaths = {"documentRequest", "documentRequest.serviceItem", "releasingOfficer", "officialApprover"})
     List<DocumentRelease> findByReleaseDateBetweenOrderByReleaseDateDesc(java.time.LocalDateTime start, java.time.LocalDateTime end);
 
     @Query("SELECT COALESCE(SUM(r.paymentAmount), 0) FROM DocumentRelease r WHERE r.paymentStatus = 'PAID' AND r.releaseDate BETWEEN :start AND :end")
