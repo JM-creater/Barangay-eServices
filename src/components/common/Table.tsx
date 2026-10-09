@@ -15,6 +15,7 @@ interface TableProps<T> {
   emptyMessage?: string;
   isLoading?: boolean;
   skeletonRowCount?: number;
+  minWidth?: string;
 }
 
 export function Table<T>({
@@ -24,6 +25,7 @@ export function Table<T>({
   emptyMessage = 'No records found.',
   isLoading = false,
   skeletonRowCount = 5,
+  minWidth,
 }: TableProps<T>) {
   if (isLoading) {
     return (
@@ -34,13 +36,14 @@ export function Table<T>({
           className: c.className,
         }))}
         rowCount={skeletonRowCount}
+        minWidth={minWidth}
       />
     );
   }
 
   return (
     <div className="table-container">
-      <table className="custom-table">
+      <table className="custom-table" style={minWidth ? { minWidth } : undefined}>
         <thead>
           <tr>
             {columns.map((col, idx) => (

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { DocumentRequest } from '../../types/Request';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
@@ -44,6 +44,18 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({
       printWindow.focus();
     }
   };
+
+  useEffect(() =>  {
+    if (isOpen) {
+      document.body.classList.add('mobile-menu-active');
+    } else {
+      document.body.classList.remove('mobile-menu-active');
+    }
+
+    return () => {
+      document.body.classList.remove('mobile-menu-active');
+    };
+  }, [isOpen]);
 
   return (
     <Modal
