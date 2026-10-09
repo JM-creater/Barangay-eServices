@@ -15,6 +15,7 @@ import com.barangay.eservices.modules.users.repository.UserRepository;
 import com.barangay.eservices.security.SecurityUtil;
 import com.barangay.eservices.util.SqlSearchUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -119,6 +120,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "userPrincipals", key = "#id")
     public UserDTO updateUserStatus(Long id, String status) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
@@ -134,6 +136,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "userPrincipals", key = "#id")
     public UserDTO updateUserRoles(Long id, Set<String> roles) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));

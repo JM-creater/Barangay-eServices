@@ -39,29 +39,48 @@ public class ReportServiceImpl implements ReportService {
     public DashboardStatsDTO getDashboardStats() {
         DashboardStatsDTO stats = new DashboardStatsDTO();
 
-        // Requests counts
-        stats.setTotalRequests(requestRepository.count());
-        stats.setPendingReviewCount(requestRepository.countByCurrentStatus(RequestStatus.SUBMITTED)
-                + requestRepository.countByCurrentStatus(RequestStatus.UNDER_REVIEW));
-        stats.setNeedsCorrectionCount(requestRepository.countByCurrentStatus(RequestStatus.NEEDS_CORRECTION));
-        stats.setAcceptedCount(requestRepository.countByCurrentStatus(RequestStatus.ACCEPTED));
-        stats.setProcessingCount(requestRepository.countByCurrentStatus(RequestStatus.PROCESSING));
-        stats.setReadyForReleaseCount(requestRepository.countByCurrentStatus(RequestStatus.READY_FOR_RELEASE));
-        stats.setCompletedReleasedCount(requestRepository.countByCurrentStatus(RequestStatus.RELEASED));
-        stats.setRejectedCount(requestRepository.countByCurrentStatus(RequestStatus.REJECTED));
+        // Requests counts via consolidated grouping query
+        List<Object[]> requestStatusCounts = requestRepository.countRequestsGroupedByStatus();
+        long totalRequests = 0;
+        Map<RequestStatus, Long> reqMap = new EnumMap<>(RequestStatus.class);
+        for (Object[] row : requestStatusCounts) {
+            RequestStatus status = (RequestStatus) row[0];
+            Long count = (Long) row[1];
+            reqMap.put(status, count);
+            totalRequests += count;
+        }
 
-        // Appointments counts
+        stats.setTotalRequests(totalRequests);
+        stats.setPendingReviewCount(reqMap.getOrDefault(RequestStatus.SUBMITTED, 0L)
+                + reqMap.getOrDefault(RequestStatus.UNDER_REVIEW, 0L));
+        stats.setNeedsCorrectionCount(reqMap.getOrDefault(RequestStatus.NEEDS_CORRECTION, 0L));
+        stats.setAcceptedCount(reqMap.getOrDefault(RequestStatus.ACCEPTED, 0L));
+        stats.setProcessingCount(reqMap.getOrDefault(RequestStatus.PROCESSING, 0L));
+        stats.setReadyForReleaseCount(reqMap.getOrDefault(RequestStatus.READY_FOR_RELEASE, 0L));
+        stats.setCompletedReleasedCount(reqMap.getOrDefault(RequestStatus.RELEASED, 0L));
+        stats.setRejectedCount(reqMap.getOrDefault(RequestStatus.REJECTED, 0L));
+
+        // Appointments counts via consolidated grouping query
         LocalDate today = LocalDate.now();
         stats.setAppointmentsToday(appointmentRepository.countByAppointmentDate(today));
-        stats.setPendingAppointmentsCount(appointmentRepository.countByStatus(AppointmentStatus.PENDING_CONFIRMATION));
-        stats.setConfirmedAppointmentsCount(appointmentRepository.countByStatus(AppointmentStatus.CONFIRMED));
-        stats.setAttendedAppointmentsCount(appointmentRepository.countByStatus(AppointmentStatus.ATTENDED));
-        stats.setNoShowAppointmentsCount(appointmentRepository.countByStatus(AppointmentStatus.NO_SHOW));
 
-        // Financial & Users
+        List<Object[]> apptStatusCounts = appointmentRepository.countAppointmentsGroupedByStatus();
+        Map<AppointmentStatus, Long> apptMap = new EnumMap<>(AppointmentStatus.class);
+        for (Object[] row : apptStatusCounts) {
+            AppointmentStatus status = (AppointmentStatus) row[0];
+            Long count = (Long) row[1];
+            apptMap.put(status, count);
+        }
+
+        stats.setPendingAppointmentsCount(apptMap.getOrDefault(AppointmentStatus.PENDING_CONFIRMATION, 0L));
+        stats.setConfirmedAppointmentsCount(apptMap.getOrDefault(AppointmentStatus.CONFIRMED, 0L));
+        stats.setAttendedAppointmentsCount(apptMap.getOrDefault(AppointmentStatus.ATTENDED, 0L));
+        stats.setNoShowAppointmentsCount(apptMap.getOrDefault(AppointmentStatus.NO_SHOW, 0L));
+
+        // Financial & Users (microsecond COUNT query, zero entity hydration in JVM heap)
         BigDecimal rev = releaseRepository.calculateTotalRevenue();
         stats.setTotalRevenueCollected(rev != null ? rev : BigDecimal.ZERO);
-        stats.setTotalRegisteredResidents(userRepository.findByRoleName(RoleName.ROLE_RESIDENT).size());
+        stats.setTotalRegisteredResidents(userRepository.countByRoleName(RoleName.ROLE_RESIDENT));
 
         // Breakdown by service
         List<Object[]> byService = requestRepository.countRequestsByService();
