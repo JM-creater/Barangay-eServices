@@ -11,10 +11,12 @@ import com.barangay.eservices.modules.catalog.entity.ServiceItem;
 import com.barangay.eservices.modules.catalog.repository.ServiceItemRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.annotation.PreDestroy;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.*;
 
 @Service
 public class AiPredictionServiceImpl implements AiPredictionService {
@@ -24,9 +26,22 @@ public class AiPredictionServiceImpl implements AiPredictionService {
     private final OnnxModelConfig onnxModelConfig;
     private final ServiceItemRepository serviceItemRepository;
 
+    private final ExecutorService predictionExecutor = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "onnx-prediction-worker");
+        t.setDaemon(true);
+        return t;
+    });
+
     public AiPredictionServiceImpl(OnnxModelConfig onnxModelConfig, ServiceItemRepository serviceItemRepository) {
         this.onnxModelConfig = onnxModelConfig;
         this.serviceItemRepository = serviceItemRepository;
+    }
+
+    @PreDestroy
+    public void cleanup() {
+        if (predictionExecutor != null) {
+            predictionExecutor.shutdownNow();
+        }
     }
 
     @Override
@@ -44,19 +59,22 @@ public class AiPredictionServiceImpl implements AiPredictionService {
         String serviceCode = serviceItem != null ? serviceItem.getServiceCode() : (request.getServiceCode() != null ? request.getServiceCode() : "BC-CLEARANCE");
         String serviceName = serviceItem != null ? serviceItem.getName() : "Barangay Service";
         double fee = serviceItem != null ? serviceItem.getFee().doubleValue() : 50.0;
-        int requiredDocs = request.getRequiredDocsCount() != null ? request.getRequiredDocsCount() :
+        int requiredDocs = request.getRequiredDocsCount() != null ? Math.max(1, Math.min(100, request.getRequiredDocsCount())) :
                 (serviceItem != null && serviceItem.getRequirements() != null ?
                         (int) serviceItem.getRequirements().stream().filter(r -> Boolean.TRUE.equals(r.getIsMandatory())).count() : 2);
-        if (requiredDocs == 0) requiredDocs = 1;
+        if (requiredDocs <= 0) requiredDocs = 1;
 
-        int submittedDocs = request.getSubmittedDocsCount() != null ? request.getSubmittedDocsCount() : requiredDocs;
+        int submittedDocs = request.getSubmittedDocsCount() != null ? Math.max(0, Math.min(100, request.getSubmittedDocsCount())) : requiredDocs;
 
-        // Date and time features
+        // Date and time features with defensive range clamping
         LocalDateTime now = LocalDateTime.now();
-        int dayOfWeek = request.getSubmissionDayOfWeek() != null ? request.getSubmissionDayOfWeek() : now.getDayOfWeek().getValue() - 1; // 0=Monday
-        int hour = request.getSubmissionHour() != null ? request.getSubmissionHour() : now.getHour();
+        int dayOfWeek = request.getSubmissionDayOfWeek() != null ? Math.max(0, Math.min(6, request.getSubmissionDayOfWeek())) : now.getDayOfWeek().getValue() - 1; // 0=Monday
+        int hour = request.getSubmissionHour() != null ? Math.max(0, Math.min(23, request.getSubmissionHour())) : now.getHour();
 
         String purpose = request.getPurpose() != null ? request.getPurpose() : "";
+        if (purpose.length() > 500) {
+            purpose = purpose.substring(0, 500);
+        }
         int purposeLength = purpose.length();
         int purposeCategory = categorizePurpose(purpose);
         int serviceIdNum = mapServiceId(serviceCode);
@@ -127,31 +145,49 @@ public class AiPredictionServiceImpl implements AiPredictionService {
                 }
 
                 float[][] tensorData = new float[][]{inputVector};
-                try (OnnxTensor inputTensor = OnnxTensor.createTensor(env, tensorData)) {
-                    String inputName = session.getInputNames().iterator().next();
-                    Map<String, OnnxTensor> container = Collections.singletonMap(inputName, inputTensor);
+                CompletableFuture<float[]> future = CompletableFuture.supplyAsync(() -> {
+                    try {
+                        try (OnnxTensor inputTensor = OnnxTensor.createTensor(env, tensorData)) {
+                            String inputName = session.getInputNames().iterator().next();
+                            Map<String, OnnxTensor> container = Collections.singletonMap(inputName, inputTensor);
 
-                    try (OrtSession.Result result = session.run(container)) {
-                        Object outputObj = result.get(0).getValue();
-                        float[] probabilities = extractProbabilities(outputObj);
-
-                        int predictedClassIndex = 0;
-                        float maxProb = -1.0f;
-                        for (int i = 0; i < probabilities.length; i++) {
-                            if (probabilities[i] > maxProb) {
-                                maxProb = probabilities[i];
-                                predictedClassIndex = i;
+                            try (OrtSession.Result result = session.run(container)) {
+                                Object outputObj = result.get(0).getValue();
+                                return extractProbabilities(outputObj);
                             }
                         }
+                    } catch (Exception ex) {
+                        logger.debug("Native ONNX session execution exception: {}", ex.getMessage());
+                        return null;
+                    }
+                }, predictionExecutor);
 
-                        List<String> classes = onnxModelConfig.getOutputClasses();
-                        assessmentCategory = (predictedClassIndex < classes.size()) ?
-                                classes.get(predictedClassIndex) : "STANDARD_REVIEW";
-                        confidence = Math.round(maxProb * 100.0) / 100.0;
-                        predictedHours = calculateTurnaroundHours(serviceCode, submittedDocs, requiredDocs, hour, predictedClassIndex);
-                        executionEngine = "ONNX_IN_MEMORY";
+                float[] probabilities = future.get(2500, TimeUnit.MILLISECONDS);
+                if (probabilities == null) {
+                    throw new RuntimeException("Null inference probabilities returned from ONNX session");
+                }
+
+                int predictedClassIndex = 0;
+                float maxProb = -1.0f;
+                for (int i = 0; i < probabilities.length; i++) {
+                    if (probabilities[i] > maxProb) {
+                        maxProb = probabilities[i];
+                        predictedClassIndex = i;
                     }
                 }
+
+                List<String> classes = onnxModelConfig.getOutputClasses();
+                assessmentCategory = (predictedClassIndex < classes.size()) ?
+                        classes.get(predictedClassIndex) : "STANDARD_REVIEW";
+                confidence = Math.round(maxProb * 100.0) / 100.0;
+                predictedHours = calculateTurnaroundHours(serviceCode, submittedDocs, requiredDocs, hour, predictedClassIndex);
+                executionEngine = "ONNX_IN_MEMORY";
+            } catch (TimeoutException te) {
+                logger.warn("Native ONNX turnaround prediction timed out (> 2500ms). Executing intelligent heuristic fallback.");
+                assessmentCategory = computeHeuristicAssessment(submittedDocs, requiredDocs, purposeLength);
+                confidence = 0.90;
+                predictedHours = calculateTurnaroundHours(serviceCode, submittedDocs, requiredDocs, hour, assessmentCategory.equals("READY_FOR_APPROVAL") ? 0 : 1);
+                executionEngine = "TIMEOUT_HEURISTIC_FALLBACK";
             } catch (Exception e) {
                 logger.warn("Native ONNX inference exception: {}. Executing intelligent heuristic fallback.", e.getMessage());
                 assessmentCategory = computeHeuristicAssessment(submittedDocs, requiredDocs, purposeLength);

@@ -114,6 +114,13 @@ public class RateLimiterService {
             return RateLimitTier.FILE_UPLOAD;
         }
 
+        // Public AI endpoints (turnaround prediction and citizen chatbot assistant)
+        if (pathMatcher.match("/api/ai/predict/**", path) ||
+            pathMatcher.match("/api/ai/predict", path) ||
+            pathMatcher.match("/api/ai/assistant/**", path)) {
+            return RateLimitTier.AI_PUBLIC;
+        }
+
         return RateLimitTier.GENERAL;
     }
 
@@ -129,6 +136,7 @@ public class RateLimiterService {
             case AUTHENTICATION -> properties.getAuthLimit();
             case PUBLIC_SEARCH -> properties.getPublicSearchLimit();
             case FILE_UPLOAD -> properties.getUploadLimit();
+            case AI_PUBLIC -> properties.getAiLimit();
             case GENERAL -> properties.getGeneralLimit();
             case EXEMPT -> Long.MAX_VALUE;
         };
@@ -140,6 +148,7 @@ public class RateLimiterService {
             case AUTHENTICATION -> "AUTH:ip:" + clientIp;
             case PUBLIC_SEARCH -> "SEARCH:ip:" + clientIp;
             case FILE_UPLOAD -> userId != null ? ("UPLOAD:user:" + userId) : ("UPLOAD:ip:" + clientIp);
+            case AI_PUBLIC -> userId != null ? ("AI:user:" + userId) : ("AI:ip:" + clientIp);
             case GENERAL -> userId != null ? ("GENERAL:user:" + userId) : ("GENERAL:ip:" + clientIp);
             case EXEMPT -> "EXEMPT";
         };

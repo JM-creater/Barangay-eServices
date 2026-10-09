@@ -1,8 +1,10 @@
 package com.barangay.eservices.modules.appointments.service;
 
 import com.barangay.eservices.dto.PaginatedResponse;
+import com.barangay.eservices.exception.ApiException;
 import com.barangay.eservices.exception.BadRequestException;
 import com.barangay.eservices.exception.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
 import com.barangay.eservices.exception.SlotFullException;
 import com.barangay.eservices.modules.appointments.dto.*;
 import com.barangay.eservices.modules.appointments.entity.Appointment;
@@ -170,6 +172,17 @@ public class AppointmentServiceImpl implements AppointmentService {
     public AppointmentDTO rescheduleAppointment(Long appointmentId, RescheduleRequest request) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment", "id", appointmentId));
+
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        boolean isOwner = appointment.getResident() != null && currentUserId != null
+                && currentUserId.equals(appointment.getResident().getId());
+        boolean isStaffOrAdmin = SecurityUtil.hasRole("ROLE_STAFF")
+                || SecurityUtil.hasRole("ROLE_APPROVER")
+                || SecurityUtil.hasRole("ROLE_ADMIN");
+
+        if (!isOwner && !isStaffOrAdmin) {
+            throw new ApiException("You are not authorized to reschedule this appointment", HttpStatus.FORBIDDEN);
+        }
 
         Long oldSlotId = appointment.getSlot().getId();
         Long newSlotId = request.getNewSlotId();

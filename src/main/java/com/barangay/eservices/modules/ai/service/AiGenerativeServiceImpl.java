@@ -41,6 +41,28 @@ public class AiGenerativeServiceImpl implements AiGenerativeService {
     private static final Pattern REF_PATTERN = Pattern.compile("REQ-\\d{6}-\\d{4}", Pattern.CASE_INSENSITIVE);
     private static final Pattern SERVICE_CODE_PATTERN = Pattern.compile("BC-(CLEARANCE|INDIGENCY|RESIDENCY|BUSINESS|GOODMORAL)", Pattern.CASE_INSENSITIVE);
 
+    private static final Pattern[] PROMPT_INJECTION_PATTERNS = new Pattern[]{
+            // Instruction overrides and jailbreak attempts
+            Pattern.compile("ignore\\s+(all\\s+)?(previous|prior|above)\\s+instructions", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("disregard\\s+(all\\s+)?(previous|prior|above)\\s+instructions", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("bypass\\s+(system|security|all)\\s+(rules|filters|instructions)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("override\\s+(system|security)\\s+(rules|instructions|prompts)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("you\\s+are\\s+now\\s+(an?\\s+)?(unrestricted|dan|jailbroken|unfiltered|developer\\s+mode)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("act\\s+as\\s+(an?\\s+)?(unrestricted|dan|jailbreak|malicious)", Pattern.CASE_INSENSITIVE),
+            // System prompt extraction and internal instructions probing
+            Pattern.compile("(show|reveal|display|output|print|give\\s+me|what\\s+is|what\\s+are)\\s+(your|the)?\\s*(system\\s+prompt|internal\\s+prompt|system\\s+instructions|developer\\s+instructions|initial\\s+prompt)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("repeat\\s+(everything|the\\s+text)\\s+above", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("print\\s+(your|the)\\s+(rules|guidelines|instructions)", Pattern.CASE_INSENSITIVE),
+            // Delimiter injection attacks
+            Pattern.compile("<\\|im_start\\|>|<\\|im_end\\|>", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\[INST\\]|\\[/INST\\]", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("<<SYS>>|<</SYS>>", Pattern.CASE_INSENSITIVE),
+            // Data exfiltration and database / secret probing
+            Pattern.compile("(dump|export|drop|truncate)\\s+(all\\s+)?(database|tables?|residents?|users?)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("select\\s+.*\\s+from\\s+(users|residents|document_requests|credentials)", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("(reveal|show|give\\s+me)\\s+(all\\s+)?(passwords?|secrets?|jwt\\s*tokens?|api\\s*keys?|env\\s*vars?)", Pattern.CASE_INSENSITIVE)
+    };
+
     @Value("${app.barangay.name}")
     private String barangayName;
 
@@ -74,6 +96,16 @@ public class AiGenerativeServiceImpl implements AiGenerativeService {
     @Override
     public AiChatResponse chat(AiChatRequest request) {
         String userQuery = request != null && request.getMessage() != null ? request.getMessage().trim() : "";
+        if (userQuery.length() > 1000) {
+            userQuery = userQuery.substring(0, 1000);
+        }
+
+        // Defensively trim conversation history if present to prevent memory bloat
+        if (request != null && request.getConversationHistory() != null && request.getConversationHistory().size() > 10) {
+            List<ChatMessageDTO> history = request.getConversationHistory();
+            request.setConversationHistory(new ArrayList<>(history.subList(history.size() - 10, history.size())));
+        }
+
         if (userQuery.isEmpty()) {
             String greeting = getContextualGreeting();
             return AiChatResponse.builder()
@@ -85,6 +117,21 @@ public class AiGenerativeServiceImpl implements AiGenerativeService {
                     .detectedIntent("GENERAL_GREETING")
                     .confidenceScore(1.0)
                     .contextBadge("In-House Trained NLP Model")
+                    .build();
+        }
+
+        // Guard against prompt injection, jailbreaks, and system probe attacks
+        if (isPromptInjection(userQuery)) {
+            logger.warn("Security Alert: Blocked potential prompt injection or system probe attempt: [{}]", sanitizeForLog(userQuery));
+            return AiChatResponse.builder()
+                    .reply("I am the **" + barangayName + " e-Services AI Assistant**. I can only assist with official barangay document requests, fees, office schedules, and application tracking.\n\n" +
+                            "I am not permitted to execute system commands, reveal internal instructions or configurations, or access private database records.")
+                    .suggestedPrompts(getQuickPrompts())
+                    .relatedServices(Collections.emptyList())
+                    .engine("SECURITY_GUARD_FIREWALL")
+                    .detectedIntent("SECURITY_GUARD_REFUSAL")
+                    .confidenceScore(1.0)
+                    .contextBadge("Security Guard Active")
                     .build();
         }
 
@@ -334,7 +381,8 @@ public class AiGenerativeServiceImpl implements AiGenerativeService {
                         sb.append("\n⚠️ **Action Required: Rectification Notice**\n");
                         sb.append("Your application was reviewed by staff and flagged for document correction.\n\n");
                         if (req.getRemarks() != null && !req.getRemarks().trim().isEmpty()) {
-                            sb.append("**Staff Verification Remarks:**\n> ").append(req.getRemarks().trim()).append("\n\n");
+                            String safeRemarks = req.getRemarks().trim().replaceAll("[<>]", "");
+                            sb.append("**Staff Verification Remarks:**\n> ").append(safeRemarks).append("\n\n");
                         } else {
                             sb.append("Please check that your uploaded valid ID or proof of residence is clear, uncropped, and readable.\n\n");
                         }
@@ -865,5 +913,22 @@ public class AiGenerativeServiceImpl implements AiGenerativeService {
             }
         }
         return date;
+    }
+
+    private boolean isPromptInjection(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return false;
+        }
+        for (Pattern p : PROMPT_INJECTION_PATTERNS) {
+            if (p.matcher(text).find()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String sanitizeForLog(String text) {
+        if (text == null) return "";
+        return text.replaceAll("[\r\n]", " ").replaceAll("[<>]", "");
     }
 }
