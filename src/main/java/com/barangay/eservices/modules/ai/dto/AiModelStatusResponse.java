@@ -37,4 +37,15 @@ public class AiModelStatusResponse {
     private String assistantTrainedAt;
     private long assistantTotalInferences;
     private double assistantAverageLatencyMs;
+
+    // Philippine ID & Document Vision Model
+    private boolean visionModelLoaded;
+    private String visionModelPath;
+    private String visionVersion;
+    private Long visionModelSizeBytes;
+    private List<String> visionClasses;
+    private Double visionAccuracyScore;
+    private String visionTrainedAt;
+    private long visionTotalInferences;
+    private double visionAverageLatencyMs;
 }

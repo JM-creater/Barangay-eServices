@@ -105,7 +105,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/requests/track/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/api/ai/predict", "/api/ai/model-status", "/api/ai/assistant/**").permitAll()
+                        .requestMatchers("/api/ai/predict", "/api/ai/model-status", "/api/ai/assistant/**", "/api/ai/vision/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         // Swagger & API docs (Restricted to ADMIN by default; public in dev if app.security.swagger.public=true)
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").access((authentication, context) ->
