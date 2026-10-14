@@ -101,6 +101,29 @@ public class OnnxModelConfig {
     private final AtomicLong assistantTotalInferences = new AtomicLong(0);
     private final AtomicLong assistantTotalLatencyMs = new AtomicLong(0);
 
+    // --- Model 3: Philippine ID & Document Vision Classifier ---
+    private OrtSession visionOrtSession;
+    private boolean visionModelLoaded = false;
+    private String loadedVisionModelPath = null;
+    private long visionModelSizeBytes = 0;
+    private String visionVersion = "1.0.0";
+    private Double visionAccuracyScore = 0.99;
+    private String visionTrainedAt = null;
+    private int visionNumFeatures = 3080;
+    private List<String> visionClasses = Arrays.asList(
+            "philsys_national_id", "drivers_license", "umid_card", "postal_id", "voters_certificate",
+            "senior_citizen_id", "pwd_id", "barangay_resident_id", "two_by_two_photo", "invalid_non_id"
+    );
+    private Map<String, String> visionClassDescriptions = new HashMap<>();
+    private float[][] visionW1 = null;
+    private float[] visionB1 = null;
+    private float[][] visionW2 = null;
+    private float[] visionB2 = null;
+    private float[][] visionW3 = null;
+    private float[] visionB3 = null;
+    private final AtomicLong visionTotalInferences = new AtomicLong(0);
+    private final AtomicLong visionTotalLatencyMs = new AtomicLong(0);
+
     public OnnxModelConfig(ResourceLoader resourceLoader, ObjectMapper objectMapper) {
         this.resourceLoader = resourceLoader;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
@@ -118,10 +141,12 @@ public class OnnxModelConfig {
             this.ortEnvironment = OrtEnvironment.getEnvironment("BarangayAI-JVM-Engine");
             loadModel();
             loadAssistantModel();
+            loadVisionModel();
         } catch (Throwable t) {
             logger.warn("ONNX Runtime native initialization notice: {}. Intelligent heuristic AI fallback enabled.", t.getMessage());
             this.modelLoaded = false;
             this.assistantModelLoaded = false;
+            this.visionModelLoaded = false;
         }
     }
 
@@ -528,6 +553,235 @@ public class OnnxModelConfig {
     }
 
     // =========================================================================
+    // MODEL 3: PHILIPPINE ID & DOCUMENT VISION CLASSIFIER LOADER
+    // =========================================================================
+
+    public synchronized boolean loadVisionModel() {
+        byte[] modelBytes = null;
+        String foundPath = null;
+
+        List<String> potentialPaths = Arrays.asList(
+                "models/id_classifier_model.onnx",
+                "../models/id_classifier_model.onnx",
+                "ai/id_classifier_model.onnx",
+                "../ai/id_classifier_model.onnx",
+                "backend/src/main/resources/models/id_classifier_model.onnx",
+                "src/main/resources/models/id_classifier_model.onnx"
+        );
+
+        for (String pStr : potentialPaths) {
+            try {
+                Path p = Paths.get(pStr).toAbsolutePath();
+                if (Files.exists(p) && Files.isRegularFile(p) && Files.size(p) > 0) {
+                    modelBytes = Files.readAllBytes(p);
+                    foundPath = p.toString();
+                    break;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (modelBytes == null) {
+            try {
+                Resource resource = resourceLoader.getResource("classpath:models/id_classifier_model.onnx");
+                if (resource.exists() && resource.isReadable()) {
+                    try (InputStream is = resource.getInputStream()) {
+                        modelBytes = is.readAllBytes();
+                        foundPath = resource.getURI().toString();
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        loadVisionMetadata();
+
+        if (modelBytes != null && ortEnvironment != null) {
+            try {
+                if (visionOrtSession != null) {
+                    visionOrtSession.close();
+                }
+
+                byte[] sessionBytes = sanitizeModelBytes(modelBytes);
+                OrtSession.SessionOptions options = new OrtSession.SessionOptions();
+                options.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT);
+
+                this.visionOrtSession = ortEnvironment.createSession(sessionBytes, options);
+                this.visionModelLoaded = true;
+                this.loadedVisionModelPath = foundPath;
+                this.visionModelSizeBytes = sessionBytes.length;
+
+                logger.info("Successfully loaded Philippine ID Vision ONNX Model into JVM native memory from '{}' (Size: {} bytes).",
+                        foundPath, sessionBytes.length);
+                return true;
+            } catch (Exception e) {
+                logger.warn("Failed to create vision OrtSession: {}. Pure-JVM neural forward pass active.", e.getMessage());
+                this.visionModelLoaded = false;
+            }
+        } else {
+            logger.info("Vision ONNX model not found on disk. Pure-JVM neural forward pass active.");
+            this.visionModelLoaded = false;
+        }
+
+        return false;
+    }
+
+    private void loadVisionMetadata() {
+        List<String> metaPaths = Arrays.asList(
+                "models/id_classifier_metadata.json",
+                "../models/id_classifier_metadata.json",
+                "ai/id_classifier_metadata.json",
+                "../ai/id_classifier_metadata.json",
+                "backend/src/main/resources/models/id_classifier_metadata.json",
+                "src/main/resources/models/id_classifier_metadata.json"
+        );
+
+        for (String mPath : metaPaths) {
+            File f = new File(mPath);
+            if (f.exists() && f.isFile()) {
+                try {
+                    JsonNode node = objectMapper.readTree(f);
+                    parseVisionJsonNode(node);
+                    logger.info("Loaded Vision metadata from '{}'. Accuracy: {}, Classes: {}.",
+                            mPath, this.visionAccuracyScore, this.visionClasses.size());
+                    return;
+                } catch (Exception e) {
+                    logger.debug("Failed parsing vision metadata from {}: {}", mPath, e.getMessage());
+                }
+            }
+        }
+
+        try {
+            Resource resVis = resourceLoader.getResource("classpath:models/id_classifier_metadata.json");
+            if (resVis.exists() && resVis.isReadable()) {
+                try (InputStream is = resVis.getInputStream()) {
+                    JsonNode node = objectMapper.readTree(is);
+                    parseVisionJsonNode(node);
+                    logger.info("Loaded Vision metadata from classpath:models/id_classifier_metadata.json. Accuracy: {}",
+                            this.visionAccuracyScore);
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void parseVisionJsonNode(JsonNode node) {
+        if (node.has("version")) this.visionVersion = node.get("version").asText();
+        if (node.has("accuracy")) this.visionAccuracyScore = node.get("accuracy").asDouble();
+        if (node.has("trained_at")) this.visionTrainedAt = node.get("trained_at").asText();
+        if (node.has("num_features")) this.visionNumFeatures = node.get("num_features").asInt();
+
+        if (node.has("classes") && node.get("classes").isArray()) {
+            List<String> cls = new ArrayList<>();
+            for (JsonNode item : node.get("classes")) {
+                cls.add(item.asText());
+            }
+            this.visionClasses = cls;
+        }
+
+        if (node.has("class_descriptions") && node.get("class_descriptions").isObject()) {
+            Map<String, String> descs = new HashMap<>();
+            Iterator<Map.Entry<String, JsonNode>> fields = node.get("class_descriptions").fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                descs.put(entry.getKey(), entry.getValue().asText());
+            }
+            this.visionClassDescriptions = descs;
+        }
+
+        if (node.has("w1") && node.has("b1") && node.has("w2") && node.has("b2") && node.has("w3") && node.has("b3")) {
+            this.visionW1 = parse2DArray(node.get("w1"));
+            this.visionB1 = parse1DArray(node.get("b1"));
+            this.visionW2 = parse2DArray(node.get("w2"));
+            this.visionB2 = parse1DArray(node.get("b2"));
+            this.visionW3 = parse2DArray(node.get("w3"));
+            this.visionB3 = parse1DArray(node.get("b3"));
+        }
+    }
+
+    public float[] runVisionInference(float[] features) {
+        if (features == null || features.length != visionNumFeatures) {
+            return null;
+        }
+
+        // Try ONNX Session first
+        if (visionModelLoaded && visionOrtSession != null && ortEnvironment != null) {
+            try {
+                OnnxTensor inputTensor = OnnxTensor.createTensor(ortEnvironment, new float[][]{features});
+                OrtSession.Result result = visionOrtSession.run(Collections.singletonMap("image_features", inputTensor));
+                float[][] probs = (float[][]) result.get(0).getValue();
+                inputTensor.close();
+                result.close();
+                if (probs != null && probs.length > 0) {
+                    return probs[0];
+                }
+            } catch (Exception e) {
+                logger.debug("Vision ONNX inference exception: {}. Falling back to JVM forward pass.", e.getMessage());
+            }
+        }
+
+        // Pure Java forward pass fallback
+        if (visionW1 != null && visionB1 != null && visionW2 != null && visionB2 != null && visionW3 != null && visionB3 != null) {
+            return computePureJavaVisionForwardPass(features);
+        }
+
+        return null;
+    }
+
+    private float[] computePureJavaVisionForwardPass(float[] features) {
+        try {
+            int h1Size = visionB1.length;
+            float[] h1 = new float[h1Size];
+            for (int j = 0; j < h1Size; j++) {
+                float sum = visionB1[j];
+                for (int i = 0; i < features.length; i++) {
+                    if (features[i] != 0.0f) {
+                        sum += features[i] * visionW1[i][j];
+                    }
+                }
+                h1[j] = Math.max(0.0f, sum);
+            }
+
+            int h2Size = visionB2.length;
+            float[] h2 = new float[h2Size];
+            for (int k = 0; k < h2Size; k++) {
+                float sum = visionB2[k];
+                for (int j = 0; j < h1Size; j++) {
+                    if (h1[j] != 0.0f) {
+                        sum += h1[j] * visionW2[j][k];
+                    }
+                }
+                h2[k] = Math.max(0.0f, sum);
+            }
+
+            int outSize = visionB3.length;
+            float[] logits = new float[outSize];
+            float maxLogit = Float.NEGATIVE_INFINITY;
+            for (int c = 0; c < outSize; c++) {
+                float sum = visionB3[c];
+                for (int k = 0; k < h2Size; k++) {
+                    sum += h2[k] * visionW3[k][c];
+                }
+                logits[c] = sum;
+                if (sum > maxLogit) maxLogit = sum;
+            }
+
+            float sumExp = 0.0f;
+            float[] probs = new float[outSize];
+            for (int c = 0; c < outSize; c++) {
+                probs[c] = (float) Math.exp(logits[c] - maxLogit);
+                sumExp += probs[c];
+            }
+            if (sumExp > 0.0f) {
+                for (int c = 0; c < outSize; c++) probs[c] /= sumExp;
+            }
+            return probs;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // =========================================================================
     // IN-MEMORY NLP FEATURE VECTOR EXTRACTION (TF-IDF)
     // =========================================================================
 
@@ -803,11 +1057,16 @@ public class OnnxModelConfig {
     public synchronized boolean reload() {
         boolean r1 = loadModel();
         boolean r2 = loadAssistantModel();
-        return r1 || r2;
+        boolean r3 = loadVisionModel();
+        return r1 || r2 || r3;
     }
 
     public synchronized boolean reloadAssistantModel() {
         return loadAssistantModel();
+    }
+
+    public synchronized boolean reloadVisionModel() {
+        return loadVisionModel();
     }
 
     public void recordInference(long latencyMs) {
@@ -820,12 +1079,21 @@ public class OnnxModelConfig {
         assistantTotalLatencyMs.addAndGet(latencyMs);
     }
 
+    public void recordVisionInference(long latencyMs) {
+        visionTotalInferences.incrementAndGet();
+        visionTotalLatencyMs.addAndGet(latencyMs);
+    }
+
     public boolean isModelLoaded() {
         return modelLoaded && ortSession != null;
     }
 
     public boolean isAssistantModelLoaded() {
         return assistantModelLoaded && assistantOrtSession != null;
+    }
+
+    public boolean isVisionModelLoaded() {
+        return visionModelLoaded && visionOrtSession != null;
     }
 
     public OrtEnvironment getOrtEnvironment() {
@@ -840,12 +1108,20 @@ public class OnnxModelConfig {
         return assistantOrtSession;
     }
 
+    public OrtSession getVisionOrtSession() {
+        return visionOrtSession;
+    }
+
     public String getLoadedModelPath() {
         return loadedModelPath;
     }
 
     public String getLoadedAssistantModelPath() {
         return loadedAssistantModelPath;
+    }
+
+    public String getLoadedVisionModelPath() {
+        return loadedVisionModelPath;
     }
 
     public long getModelSizeBytes() {
@@ -856,12 +1132,20 @@ public class OnnxModelConfig {
         return assistantModelSizeBytes;
     }
 
+    public long getVisionModelSizeBytes() {
+        return visionModelSizeBytes;
+    }
+
     public String getVersion() {
         return version;
     }
 
     public String getAssistantVersion() {
         return assistantVersion;
+    }
+
+    public String getVisionVersion() {
+        return visionVersion;
     }
 
     public Double getAccuracyScore() {
@@ -872,12 +1156,20 @@ public class OnnxModelConfig {
         return assistantAccuracyScore;
     }
 
+    public Double getVisionAccuracyScore() {
+        return visionAccuracyScore;
+    }
+
     public String getTrainedAt() {
         return trainedAt;
     }
 
     public String getAssistantTrainedAt() {
         return assistantTrainedAt;
+    }
+
+    public String getVisionTrainedAt() {
+        return visionTrainedAt;
     }
 
     public List<String> getInputFeatures() {
@@ -890,6 +1182,14 @@ public class OnnxModelConfig {
 
     public List<String> getAssistantClasses() {
         return assistantClasses;
+    }
+
+    public List<String> getVisionClasses() {
+        return visionClasses;
+    }
+
+    public Map<String, String> getVisionClassDescriptions() {
+        return visionClassDescriptions;
     }
 
     public int getAssistantVocabularySize() {
@@ -912,6 +1212,10 @@ public class OnnxModelConfig {
         return assistantTotalInferences.get();
     }
 
+    public long getVisionTotalInferences() {
+        return visionTotalInferences.get();
+    }
+
     public double getAverageLatencyMs() {
         long count = totalInferences.get();
         return count == 0 ? 0.0 : (double) totalLatencyMs.get() / count;
@@ -920,6 +1224,11 @@ public class OnnxModelConfig {
     public double getAssistantAverageLatencyMs() {
         long count = assistantTotalInferences.get();
         return count == 0 ? 0.0 : (double) assistantTotalLatencyMs.get() / count;
+    }
+
+    public double getVisionAverageLatencyMs() {
+        long count = visionTotalInferences.get();
+        return count == 0 ? 0.0 : (double) visionTotalLatencyMs.get() / count;
     }
 
     @PreDestroy
@@ -935,6 +1244,10 @@ public class OnnxModelConfig {
             if (assistantOrtSession != null) {
                 assistantOrtSession.close();
                 assistantOrtSession = null;
+            }
+            if (visionOrtSession != null) {
+                visionOrtSession.close();
+                visionOrtSession = null;
             }
             if (ortEnvironment != null) {
                 ortEnvironment.close();
