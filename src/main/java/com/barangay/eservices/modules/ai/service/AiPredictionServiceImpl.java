@@ -337,6 +337,15 @@ public class AiPredictionServiceImpl implements AiPredictionService {
                 .assistantTrainedAt(onnxModelConfig.getAssistantTrainedAt())
                 .assistantTotalInferences(onnxModelConfig.getAssistantTotalInferences())
                 .assistantAverageLatencyMs(Math.round(onnxModelConfig.getAssistantAverageLatencyMs() * 100.0) / 100.0)
+                .visionModelLoaded(onnxModelConfig.isVisionModelLoaded())
+                .visionModelPath(onnxModelConfig.getLoadedVisionModelPath() != null ? onnxModelConfig.getLoadedVisionModelPath() : "models/id_classifier_model.onnx")
+                .visionVersion(onnxModelConfig.getVisionVersion())
+                .visionModelSizeBytes(onnxModelConfig.getVisionModelSizeBytes())
+                .visionClasses(onnxModelConfig.getVisionClasses())
+                .visionAccuracyScore(onnxModelConfig.getVisionAccuracyScore())
+                .visionTrainedAt(onnxModelConfig.getVisionTrainedAt())
+                .visionTotalInferences(onnxModelConfig.getVisionTotalInferences())
+                .visionAverageLatencyMs(Math.round(onnxModelConfig.getVisionAverageLatencyMs() * 100.0) / 100.0)
                 .build();
     }
 
