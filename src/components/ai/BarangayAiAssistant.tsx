@@ -13,7 +13,7 @@ import {
   HelpCircle,
   Zap,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export interface AiTriggerContext {
   page?: string;
@@ -26,6 +26,10 @@ export const triggerBarangayAi = (prompt?: string, context?: AiTriggerContext) =
 };
 
 export const BarangayAiAssistant: React.FC = () => {
+  const location = useLocation();
+  const isStaffOrAdminRoute = location.pathname.startsWith('/staff') || location.pathname.startsWith('/admin');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -55,7 +59,40 @@ export const BarangayAiAssistant: React.FC = () => {
   };
 
   useEffect(() => {
+    const checkModalOpen = () => {
+      const hasModalOverlay = !!document.querySelector('.modal-overlay');
+      const hasActiveModalClass = document.body.classList.contains('mobile-menu-active');
+      const hasFixedModal = !!document.querySelector('[role="dialog"]');
+      setIsModalOpen(hasModalOverlay || hasActiveModalClass || hasFixedModal);
+    };
+
+    checkModalOpen();
+
+    const observer = new MutationObserver(() => {
+      checkModalOpen();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const shouldHide = isStaffOrAdminRoute || isModalOpen;
+
+  useEffect(() => {
+    if (shouldHide && isOpen) {
+      setIsOpen(false);
+    }
+  }, [shouldHide, isOpen]);
+
+  useEffect(() => {
     const handleOpen = (e: Event) => {
+      if (shouldHide) return;
       const customEvent = e as CustomEvent<{ prompt?: string; context?: AiTriggerContext }>;
       setIsOpen(true);
       const ctx = customEvent.detail?.context || null;
@@ -69,7 +106,7 @@ export const BarangayAiAssistant: React.FC = () => {
     };
     window.addEventListener('open-barangay-ai', handleOpen);
     return () => window.removeEventListener('open-barangay-ai', handleOpen);
-  }, [messages, loading]);
+  }, [messages, loading, shouldHide]);
 
   useEffect(() => {
     if (isOpen) {
@@ -210,6 +247,10 @@ export const BarangayAiAssistant: React.FC = () => {
         return 'In-House Trained NLP';
     }
   };
+
+  if (shouldHide) {
+    return null;
+  }
 
   return (
     <>

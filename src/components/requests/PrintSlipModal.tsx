@@ -64,7 +64,7 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({
       title={`Official Transaction Slip — ${request.referenceNumber}`}
       maxWidth="860px"
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {/* Top Summary Bar */}
         <div
           style={{
@@ -79,17 +79,17 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({
             gap: '0.75rem',
           }}
         >
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F2A4A' }}>
+          <div style={{ minWidth: 0, flex: '1 1 240px' }}>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F2A4A', wordBreak: 'break-word' }}>
               {request.service?.name || 'Document Application'}
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+            <div style={{ fontSize: '0.8rem', color: '#64748b', wordBreak: 'break-word', marginTop: '2px' }}>
               Applicant: <strong>{request.resident?.fullName}</strong> &nbsp;•&nbsp; Status:{' '}
               <strong style={{ color: '#1E4E8C' }}>{request.currentStatus}</strong>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <Button variant="outline" size="sm" onClick={handleOpenWindow}>
               <ExternalLink size={15} /> Open in New Tab
             </Button>
@@ -106,8 +106,10 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({
             borderRadius: '8px',
             overflow: 'hidden',
             backgroundColor: '#525659',
-            padding: '12px',
+            padding: 'clamp(6px, 1.5vw, 12px)',
             boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.1)',
+            boxSizing: 'border-box',
+            width: '100%',
           }}
         >
           <iframe
@@ -116,7 +118,7 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({
             srcDoc={slipHtml}
             style={{
               width: '100%',
-              height: 'min(560px, 52vh)',
+              height: 'clamp(380px, 56vh, 580px)',
               border: 'none',
               borderRadius: '4px',
               backgroundColor: '#ffffff',
@@ -128,11 +130,11 @@ export const PrintSlipModal: React.FC<PrintSlipModalProps> = ({
 
         {/* Footer Actions */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+          <div style={{ fontSize: '0.8rem', color: '#64748b', minWidth: 0, flex: '1 1 220px' }}>
             💡 <em>Tip: This official slip includes your appearance checklist, barcode, and triage validation sections.</em>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end', flex: '1 1 auto' }}>
             <Button variant="ghost" onClick={onClose}>
               Close
             </Button>
