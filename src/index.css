@@ -643,7 +643,9 @@ body.mobile-menu-active .ai-assistant-window {
   .mobile-nav-toggle,
   .btn,
   button,
-  .no-print {
+  .no-print,
+  .ai-assistant-fab,
+  .ai-assistant-window {
     display: none !important;
   }
 }

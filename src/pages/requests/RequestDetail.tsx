@@ -21,13 +21,20 @@ import {
   Printer,
   XCircle,
   Upload,
+  Camera,
   CheckCircle2,
   Clock,
+  X,
+  Crop,
 } from 'lucide-react';
 import { PrintSlipModal } from '../../components/requests/PrintSlipModal';
 import { getFileDownloadUrl } from '../../utils/fileUrl';
-import { aiService, AiPredictionResponse } from '../../services/aiService';
+import { aiService, AiPredictionResponse, AiVisionVerificationResponse } from '../../services/aiService';
+import { evaluateImageQuality, EdgeImageQualityResult } from '../../utils/edgeImageQuality';
 import { AiPredictionBadge } from '../../components/ai/AiPredictionBadge';
+import { AiVisionFeedbackBadge } from '../../components/ai/AiVisionFeedbackBadge';
+import { CameraCaptureModal } from '../../components/common/CameraCaptureModal';
+import { ImageCropModal } from '../../components/common/ImageCropModal';
 import { triggerBarangayAi } from '../../components/ai/BarangayAiAssistant';
 import { Sparkles } from 'lucide-react';
 
@@ -47,6 +54,95 @@ export const RequestDetail: React.FC = () => {
   const [correctionRemarks, setCorrectionRemarks] = useState('');
   const [resubmitFiles, setResubmitFiles] = useState<{ file: File; requirementId?: number }[]>([]);
   const [resubmitting, setResubmitting] = useState(false);
+  const [aiVisionVerifications, setAiVisionVerifications] = useState<
+    Record<number, { edge: EdgeImageQualityResult; vision: AiVisionVerificationResponse }>
+  >({});
+  const [aiAnalyzingFiles, setAiAnalyzingFiles] = useState<Record<number, boolean>>({});
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [cropTargetFile, setCropTargetFile] = useState<File | null>(null);
+  const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
+
+  const handleUpdateResubmitFile = (index: number, newFile: File) => {
+    setResubmitFiles((prev) => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], file: newFile };
+      return copy;
+    });
+
+    if (newFile.type.startsWith('image/')) {
+      setAiAnalyzingFiles((p) => ({ ...p, [index]: true }));
+      evaluateImageQuality(newFile)
+        .then((edgeRes) => {
+          aiService
+            .verifyDocumentVision(newFile)
+            .then((visionRes) => {
+              setAiVisionVerifications((p) => ({
+                ...p,
+                [index]: { edge: edgeRes, vision: visionRes },
+              }));
+            })
+            .catch(() => {})
+            .finally(() => {
+              setAiAnalyzingFiles((p) => ({ ...p, [index]: false }));
+            });
+        })
+        .catch(() => {
+          setAiAnalyzingFiles((p) => ({ ...p, [index]: false }));
+        });
+    }
+  };
+
+  const handleAddResubmitFile = (file: File) => {
+    setResubmitFiles((prev) => {
+      const updated = [...prev, { file }];
+      const idx = updated.length - 1;
+      if (file.type.startsWith('image/')) {
+        setAiAnalyzingFiles((p) => ({ ...p, [idx]: true }));
+        evaluateImageQuality(file)
+          .then((edgeRes) => {
+            aiService
+              .verifyDocumentVision(file)
+              .then((visionRes) => {
+                setAiVisionVerifications((p) => ({
+                  ...p,
+                  [idx]: { edge: edgeRes, vision: visionRes },
+                }));
+              })
+              .catch(() => {})
+              .finally(() => {
+                setAiAnalyzingFiles((p) => ({ ...p, [idx]: false }));
+              });
+          })
+          .catch(() => {
+            setAiAnalyzingFiles((p) => ({ ...p, [idx]: false }));
+          });
+      }
+      return updated;
+    });
+  };
+
+  const handleRemoveResubmitFile = (index: number) => {
+    setResubmitFiles((prev) => prev.filter((_, idx) => idx !== index));
+    setAiVisionVerifications((prev) => {
+      const next: Record<number, { edge: EdgeImageQualityResult; vision: AiVisionVerificationResponse }> = {};
+      Object.keys(prev).forEach((key) => {
+        const k = parseInt(key, 10);
+        if (k < index) next[k] = prev[k];
+        else if (k > index) next[k - 1] = prev[k];
+      });
+      return next;
+    });
+    setAiAnalyzingFiles((prev) => {
+      const next: Record<number, boolean> = {};
+      Object.keys(prev).forEach((key) => {
+        const k = parseInt(key, 10);
+        if (k < index) next[k] = prev[k];
+        else if (k > index) next[k - 1] = prev[k];
+      });
+      return next;
+    });
+  };
 
   // Cancellation Modal State
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -144,6 +240,29 @@ export const RequestDetail: React.FC = () => {
 
   const handleResubmit = async () => {
     if (!request) return;
+
+    // Check if any file is still being analyzed
+    const isScanning = Object.values(aiAnalyzingFiles).some(Boolean);
+    if (isScanning) {
+      alert('Please wait a moment while your document photos are being verified...');
+      return;
+    }
+
+    // Validate quality & authenticity of correction documents
+    for (let i = 0; i < resubmitFiles.length; i++) {
+      const ver = aiVisionVerifications[i];
+      if (ver) {
+        if (ver.edge.isBlurry || !ver.vision.sharp || ver.edge.qualityBadge === 'POOR') {
+          alert(`Cannot submit: "${resubmitFiles[i].file.name}" is too blurry or unfocused to read. Please upload a clearer, well-lit photo.`);
+          return;
+        }
+        if (!ver.vision.validDocument || ver.vision.detectedClass === 'invalid_non_id') {
+          alert(`Cannot submit: "${resubmitFiles[i].file.name}" was not recognized as an official Philippine government ID or valid 2x2 photo. Please upload a valid document.`);
+          return;
+        }
+      }
+    }
+
     setResubmitting(true);
     try {
       await requestService.resubmitCorrections(
@@ -503,24 +622,151 @@ export const RequestDetail: React.FC = () => {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.45rem' }}>
                 Attach Updated Supporting Document(s)
               </label>
-              <input
-                type="file"
-                multiple
-                accept="image/*,application/pdf"
-                onChange={(e) => {
-                  if (e.target.files) {
-                    const newFiles = Array.from(e.target.files).map((file) => ({ file }));
-                    setResubmitFiles(newFiles);
-                  }
-                }}
-              />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '0.45rem 0.85rem',
+                    backgroundColor: '#f8fafc',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#334155',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Upload size={14} color="#64748b" />
+                  <span>Choose File(s)</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,application/pdf"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        Array.from(e.target.files).forEach((file) => handleAddResubmitFile(file));
+                      }
+                    }}
+                  />
+                </label>
+
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>or</span>
+
+                <button
+                  type="button"
+                  onClick={() => setShowCameraModal(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '0.45rem 0.85rem',
+                    backgroundColor: '#eff6ff',
+                    border: '1.5px solid #bfdbfe',
+                    borderRadius: '6px',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#1d4ed8',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Camera size={14} color="#2563eb" />
+                  <span>Take Photo with Camera</span>
+                </button>
+              </div>
+
+              {resubmitFiles.length > 0 && (
+                <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {resubmitFiles.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        backgroundColor: '#ffffff',
+                        borderRadius: '6px',
+                        border: '1px solid #e2e8f0',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontWeight: 600, color: '#1e293b' }}>{item.file.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                            ({(item.file.size / 1024).toFixed(0)} KB)
+                          </span>
+                          {item.file.type.startsWith('image/') && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCropTargetFile(item.file);
+                                setCropTargetIndex(idx);
+                                setShowCropModal(true);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                                background: 'none',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '4px',
+                                padding: '2px 6px',
+                                color: '#1e4e8c',
+                                fontSize: '0.72rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                backgroundColor: '#f8fafc',
+                              }}
+                              title="Re-frame or crop this image"
+                            >
+                              <Crop size={11} color="#1e4e8c" /> Adjust Crop
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveResubmitFile(idx)}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#dc2626',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '2px',
+                            }}
+                            title="Remove file"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <AiVisionFeedbackBadge
+                        loading={aiAnalyzingFiles[idx]}
+                        verification={aiVisionVerifications[idx]}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
-              <Button variant="ghost" onClick={() => setShowCorrectionModal(false)}>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowCorrectionModal(false);
+                  setResubmitFiles([]);
+                  setAiVisionVerifications({});
+                  setAiAnalyzingFiles({});
+                }}
+              >
                 Cancel
               </Button>
               <Button variant="primary" isLoading={resubmitting} onClick={handleResubmit}>
@@ -699,6 +945,38 @@ export const RequestDetail: React.FC = () => {
             request={request}
           />
         )}
+
+        {/* Live Camera Capture Modal for Resubmissions */}
+        <CameraCaptureModal
+          isOpen={showCameraModal}
+          onClose={() => setShowCameraModal(false)}
+          onCapture={(file) => handleAddResubmitFile(file)}
+          title="Take Supporting Document Photo"
+          guideMode="card"
+        />
+
+        {/* Interactive Image Crop Modal for Resubmissions */}
+        <ImageCropModal
+          isOpen={showCropModal}
+          onClose={() => {
+            setShowCropModal(false);
+            setCropTargetFile(null);
+            setCropTargetIndex(null);
+          }}
+          imageFile={cropTargetFile}
+          onCropComplete={(croppedFile) => {
+            if (cropTargetIndex !== null) {
+              handleUpdateResubmitFile(cropTargetIndex, croppedFile);
+            } else {
+              handleAddResubmitFile(croppedFile);
+            }
+            setShowCropModal(false);
+            setCropTargetFile(null);
+            setCropTargetIndex(null);
+          }}
+          title="Crop & Frame Supporting Document"
+          allowKeepOriginal={true}
+        />
       </div>
     </Layout>
   );

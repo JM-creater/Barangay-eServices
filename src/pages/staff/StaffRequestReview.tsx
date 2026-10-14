@@ -933,16 +933,17 @@ export const StaffRequestReview: React.FC = () => {
           isOpen={showPreviewModal}
           onClose={() => setShowPreviewModal(false)}
           title={`Official Certificate Preview - ${request.referenceNumber}`}
+          maxWidth="880px"
         >
           {previewLoading ? (
             <DocumentPreviewSkeleton />
           ) : previewData ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '6px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '0.75rem' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F2A4A' }}>{previewData.serviceName}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#616E7C' }}>
-                    Control No: <strong>{previewData.issuedDocumentNumber}</strong> | Signatory: <strong>{previewData.officialApproverName}</strong>
+                <div style={{ minWidth: 0, flex: '1 1 240px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0F2A4A', wordBreak: 'break-word' }}>{previewData.serviceName}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#616E7C', wordBreak: 'break-word', marginTop: '2px' }}>
+                    Control No: <strong>{previewData.issuedDocumentNumber}</strong> &nbsp;•&nbsp; Signatory: <strong>{previewData.officialApproverName}</strong>
                   </div>
                 </div>
                 <Button variant="primary" size="sm" onClick={handlePrintCertificate}>
@@ -955,10 +956,11 @@ export const StaffRequestReview: React.FC = () => {
                 style={{
                   border: '1px solid #cbd5e1',
                   borderRadius: '6px',
-                  maxHeight: '520px',
-                  overflowY: 'auto',
-                  backgroundColor: '#ffffff',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                  backgroundColor: '#525659',
+                  padding: 'clamp(6px, 1.5vw, 12px)',
+                  boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.1)',
+                  boxSizing: 'border-box',
+                  width: '100%',
                 }}
               >
                 <iframe
@@ -967,13 +969,17 @@ export const StaffRequestReview: React.FC = () => {
                   srcDoc={previewData.renderedHtml}
                   style={{
                     width: '100%',
-                    height: 'min(500px, 48vh)',
+                    height: 'clamp(380px, 56vh, 580px)',
                     border: 'none',
+                    borderRadius: '4px',
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
+                    display: 'block',
                   }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                 <Button variant="ghost" onClick={() => setShowPreviewModal(false)}>
                   Close
                 </Button>

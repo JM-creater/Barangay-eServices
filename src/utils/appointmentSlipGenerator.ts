@@ -330,7 +330,9 @@ export function generateAppointmentSlipHtml(request: DocumentRequest): string {
       background-color: #f1f5f9;
       font-size: 11px;
       line-height: 1.35;
-      padding: 16px 0;
+      padding: clamp(6px, 1.8vw, 16px);
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
     }
 
     .btn-action {
@@ -350,13 +352,16 @@ export function generateAppointmentSlipHtml(request: DocumentRequest): string {
     /* Slip Page Container */
     .slip-container {
       max-width: 820px;
+      width: 100%;
       margin: 0 auto;
       background-color: #ffffff;
       border: 2px solid #1E4E8C;
       border-radius: 8px;
-      padding: 16px 20px;
+      padding: clamp(10px, 2.5vw, 20px);
       box-shadow: 0 6px 24px rgba(15, 42, 74, 0.08);
       position: relative;
+      box-sizing: border-box;
+      overflow-x: hidden;
     }
 
     /* Header Letterhead */
@@ -374,6 +379,11 @@ export function generateAppointmentSlipHtml(request: DocumentRequest): string {
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+    .header-seal svg {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
     .header-text {
       text-align: center;
@@ -783,7 +793,162 @@ export function generateAppointmentSlipHtml(request: DocumentRequest): string {
       margin-top: 4px;
     }
 
-    /* Print Specific Tweaks */
+    /* Responsive Screen Tweaks */
+    @media screen and (max-width: 680px) {
+      body {
+        padding: 6px 4px;
+      }
+      .slip-container {
+        padding: 10px;
+        border-width: 1.5px;
+      }
+      .slip-header {
+        gap: 6px;
+        padding-bottom: 6px;
+      }
+      .header-seal {
+        width: clamp(40px, 11vw, 56px);
+        height: clamp(40px, 11vw, 56px);
+      }
+      .country {
+        font-size: 8px;
+        letter-spacing: 0.8px;
+      }
+      .province {
+        font-size: 9px;
+        letter-spacing: 0.5px;
+      }
+      .barangay {
+        font-size: clamp(14px, 4vw, 17px);
+        letter-spacing: 0.8px;
+      }
+      .office {
+        font-size: 8.5px;
+        letter-spacing: 0.3px;
+      }
+      .hall-address {
+        font-size: 7.5px;
+      }
+      .title-main {
+        font-size: clamp(12px, 3.2vw, 14px);
+        letter-spacing: 0.8px;
+      }
+      .title-sub {
+        font-size: 8.5px;
+      }
+      .ref-strip {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 8px 10px;
+      }
+      .ref-value {
+        font-size: clamp(13px, 4vw, 15px);
+        letter-spacing: 1px;
+      }
+      .qr-container {
+        flex-direction: row;
+        gap: 10px;
+        padding: 6px 10px;
+        justify-content: center;
+      }
+      .qr-container img, .qr-container svg {
+        width: 60px;
+        height: 60px;
+      }
+      .qr-caption {
+        font-size: 8px;
+        margin-top: 0;
+      }
+      .slip-table {
+        display: block;
+        width: 100%;
+      }
+      .slip-table tbody {
+        display: block;
+        width: 100%;
+      }
+      .slip-table tr {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 6px;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .slip-table tr:last-child {
+        margin-bottom: 0;
+      }
+      .slip-table td {
+        display: block !important;
+        width: 100% !important;
+        border: none !important;
+        padding: 4px 8px;
+        box-sizing: border-box;
+      }
+      .slip-table td.lbl {
+        background-color: #f1f5f9;
+        font-size: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #475569;
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding-top: 5px;
+        padding-bottom: 3px;
+      }
+      .slip-table td.val {
+        border-bottom: 1px dashed #e2e8f0 !important;
+        padding-top: 3px;
+        padding-bottom: 6px;
+      }
+      .slip-table td.val:last-child {
+        border-bottom: none !important;
+      }
+      .appt-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+      }
+      .checklist-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .guidelines-grid {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .official-table {
+        display: block;
+        width: 100%;
+      }
+      .official-table tbody, .official-table tr {
+        display: block;
+        width: 100%;
+      }
+      .official-table td {
+        display: block !important;
+        width: 100% !important;
+        margin-bottom: 6px;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      .official-table tr td:last-child {
+        margin-bottom: 0;
+      }
+      .footer-audit {
+        flex-direction: column;
+        gap: 3px;
+      }
+    }
+
+    @media screen and (max-width: 360px) {
+      .appt-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Print Specific Tweaks - Guarantees exact, untouched paper document layout */
     @media print {
       body {
         background-color: #ffffff !important;
@@ -795,9 +960,112 @@ export function generateAppointmentSlipHtml(request: DocumentRequest): string {
         padding: 10px 14px !important;
         max-width: 100% !important;
         border-radius: 0 !important;
+        overflow-x: visible !important;
       }
       .section-block {
         page-break-inside: avoid;
+      }
+      .slip-header {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 12px !important;
+      }
+      .header-seal {
+        width: 76px !important;
+        height: 76px !important;
+      }
+      .country {
+        font-size: 9.5px !important;
+        letter-spacing: 1.5px !important;
+      }
+      .province {
+        font-size: 10.5px !important;
+        letter-spacing: 0.8px !important;
+      }
+      .barangay {
+        font-size: 20px !important;
+        letter-spacing: 1.5px !important;
+      }
+      .office {
+        font-size: 10.5px !important;
+        letter-spacing: 0.5px !important;
+      }
+      .hall-address {
+        font-size: 8.5px !important;
+      }
+      .title-main {
+        font-size: 15px !important;
+        letter-spacing: 1.2px !important;
+      }
+      .title-sub {
+        font-size: 9.5px !important;
+      }
+      .ref-strip {
+        display: grid !important;
+        grid-template-columns: 1.6fr 1.6fr 0.8fr !important;
+        gap: 10px !important;
+      }
+      .qr-container {
+        flex-direction: column !important;
+        padding: 4px !important;
+      }
+      .qr-container img, .qr-container svg {
+        width: 76px !important;
+        height: 76px !important;
+      }
+      .qr-caption {
+        font-size: 7.5px !important;
+        margin-top: 2px !important;
+      }
+      .slip-table {
+        display: table !important;
+        width: 100% !important;
+      }
+      .slip-table tbody {
+        display: table-row-group !important;
+      }
+      .slip-table tr {
+        display: table-row !important;
+        margin-bottom: 0 !important;
+        border: none !important;
+      }
+      .slip-table td {
+        display: table-cell !important;
+        border: 1px solid #e2e8f0 !important;
+        padding: 4px 6px !important;
+      }
+      .slip-table td.lbl {
+        font-size: 10px !important;
+      }
+      .appt-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+      }
+      .checklist-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+      .guidelines-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+      .official-table {
+        display: table !important;
+        width: 100% !important;
+      }
+      .official-table tbody {
+        display: table-row-group !important;
+      }
+      .official-table tr {
+        display: table-row !important;
+      }
+      .official-table td {
+        display: table-cell !important;
+        margin-bottom: 0 !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+      .footer-audit {
+        flex-direction: row !important;
       }
     }
   </style>
