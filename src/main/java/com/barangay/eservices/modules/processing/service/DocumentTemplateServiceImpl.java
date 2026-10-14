@@ -134,96 +134,116 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService {
                 "<html lang=\"en\">\n" +
                 "<head>\n" +
                 "  <meta charset=\"UTF-8\" />\n" +
+                "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n" +
                 "  <title>" + escapeHtml(dto.getServiceName()) + " - " + escapeHtml(dto.getRecipientName()) + "</title>\n" +
                 "  <style>\n" +
                 "    @page { size: A4; margin: 15mm 20mm; }\n" +
+                "    * {\n" +
+                "      box-sizing: border-box;\n" +
+                "      -webkit-print-color-adjust: exact !important;\n" +
+                "      print-color-adjust: exact !important;\n" +
+                "    }\n" +
                 "    body {\n" +
                 "      font-family: 'Times New Roman', Times, serif;\n" +
                 "      color: #1a1a1a;\n" +
                 "      margin: 0;\n" +
-                "      padding: 20px;\n" +
+                "      padding: clamp(10px, 2.5vw, 24px);\n" +
                 "      line-height: 1.6;\n" +
-                "      background-color: #ffffff;\n" +
+                "      background-color: #f8fafc;\n" +
                 "    }\n" +
                 "    .cert-border {\n" +
+                "      max-width: 800px;\n" +
+                "      margin: 0 auto;\n" +
                 "      border: 3px double #1e3a8a;\n" +
-                "      padding: 30px;\n" +
-                "      min-height: 900px;\n" +
+                "      padding: clamp(14px, 3.5vw, 30px);\n" +
+                "      min-height: 800px;\n" +
                 "      position: relative;\n" +
+                "      background-color: #ffffff;\n" +
+                "      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);\n" +
+                "      box-sizing: border-box;\n" +
                 "    }\n" +
                 "    .header {\n" +
                 "      text-align: center;\n" +
                 "      border-bottom: 2px solid #1e3a8a;\n" +
-                "      padding-bottom: 15px;\n" +
-                "      margin-bottom: 25px;\n" +
+                "      padding-bottom: 12px;\n" +
+                "      margin-bottom: 20px;\n" +
                 "    }\n" +
                 "    .header h4 {\n" +
                 "      margin: 2px 0;\n" +
-                "      font-size: 13px;\n" +
+                "      font-size: clamp(10.5px, 2vw, 13px);\n" +
                 "      font-weight: normal;\n" +
                 "      letter-spacing: 1px;\n" +
                 "      text-transform: uppercase;\n" +
                 "    }\n" +
                 "    .header h3 {\n" +
                 "      margin: 4px 0;\n" +
-                "      font-size: 16px;\n" +
+                "      font-size: clamp(13px, 2.5vw, 16px);\n" +
                 "      font-weight: bold;\n" +
                 "      color: #1e3a8a;\n" +
                 "    }\n" +
                 "    .header h2 {\n" +
                 "      margin: 6px 0 0 0;\n" +
-                "      font-size: 18px;\n" +
+                "      font-size: clamp(14px, 3vw, 18px);\n" +
                 "      color: #0f172a;\n" +
                 "      font-weight: bold;\n" +
                 "    }\n" +
                 "    .title-banner {\n" +
                 "      text-align: center;\n" +
-                "      margin: 30px 0 25px 0;\n" +
+                "      margin: 24px 0 20px 0;\n" +
                 "    }\n" +
                 "    .title-banner h1 {\n" +
-                "      font-size: 26px;\n" +
+                "      font-size: clamp(18px, 4vw, 26px);\n" +
                 "      text-transform: uppercase;\n" +
                 "      color: #1e3a8a;\n" +
-                "      letter-spacing: 2px;\n" +
+                "      letter-spacing: 1.5px;\n" +
                 "      margin: 0;\n" +
                 "      text-decoration: underline;\n" +
+                "      word-break: break-word;\n" +
                 "    }\n" +
                 "    .control-numbers {\n" +
                 "      display: flex;\n" +
                 "      justify-content: space-between;\n" +
-                "      font-size: 12px;\n" +
+                "      flex-wrap: wrap;\n" +
+                "      gap: 6px 14px;\n" +
+                "      font-size: clamp(10px, 1.8vw, 12px);\n" +
                 "      color: #4b5563;\n" +
                 "      margin-bottom: 20px;\n" +
                 "      border-bottom: 1px dashed #cbd5e1;\n" +
-                "      padding-bottom: 6px;\n" +
+                "      padding-bottom: 8px;\n" +
                 "    }\n" +
                 "    .body-text {\n" +
-                "      font-size: 15px;\n" +
+                "      font-size: clamp(13px, 2.2vw, 15px);\n" +
                 "      text-align: justify;\n" +
-                "      text-indent: 40px;\n" +
-                "      margin-bottom: 20px;\n" +
+                "      text-indent: clamp(20px, 4vw, 40px);\n" +
+                "      margin-bottom: 18px;\n" +
+                "      word-break: break-word;\n" +
+                "      hyphens: auto;\n" +
                 "    }\n" +
                 "    .salutation {\n" +
-                "      font-size: 15px;\n" +
+                "      font-size: clamp(13px, 2.2vw, 15px);\n" +
                 "      font-weight: bold;\n" +
-                "      margin: 25px 0 15px 0;\n" +
+                "      margin: 20px 0 12px 0;\n" +
                 "    }\n" +
                 "    .closing-text {\n" +
-                "      font-size: 15px;\n" +
+                "      font-size: clamp(13px, 2.2vw, 15px);\n" +
                 "      text-align: justify;\n" +
-                "      text-indent: 40px;\n" +
-                "      margin-top: 25px;\n" +
+                "      text-indent: clamp(20px, 4vw, 40px);\n" +
+                "      margin-top: 20px;\n" +
+                "      word-break: break-word;\n" +
+                "      hyphens: auto;\n" +
                 "    }\n" +
                 "    .signature-section {\n" +
-                "      margin-top: 60px;\n" +
+                "      margin-top: 40px;\n" +
                 "      display: flex;\n" +
                 "      justify-content: space-between;\n" +
                 "      align-items: flex-end;\n" +
+                "      flex-wrap: wrap;\n" +
+                "      gap: 20px;\n" +
                 "    }\n" +
                 "    .thumbmark-box {\n" +
                 "      border: 1px solid #94a3b8;\n" +
-                "      width: 110px;\n" +
-                "      height: 90px;\n" +
+                "      width: 100px;\n" +
+                "      height: 85px;\n" +
                 "      display: flex;\n" +
                 "      align-items: center;\n" +
                 "      justify-content: center;\n" +
@@ -233,48 +253,91 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService {
                 "    }\n" +
                 "    .signatory {\n" +
                 "      text-align: center;\n" +
-                "      width: 250px;\n" +
+                "      min-width: 200px;\n" +
+                "      max-width: 280px;\n" +
                 "    }\n" +
                 "    .signatory-name {\n" +
                 "      font-weight: bold;\n" +
-                "      font-size: 16px;\n" +
+                "      font-size: clamp(13px, 2.2vw, 16px);\n" +
                 "      text-transform: uppercase;\n" +
                 "      border-bottom: 1px solid #1a1a1a;\n" +
                 "      padding-bottom: 2px;\n" +
+                "      word-break: break-word;\n" +
                 "    }\n" +
                 "    .signatory-title {\n" +
-                "      font-size: 13px;\n" +
+                "      font-size: clamp(11px, 2vw, 13px);\n" +
                 "      margin-top: 4px;\n" +
                 "      color: #334155;\n" +
                 "    }\n" +
                 "    .footer-audit {\n" +
-                "      margin-top: 45px;\n" +
-                "      padding-top: 15px;\n" +
+                "      margin-top: 40px;\n" +
+                "      padding-top: 14px;\n" +
                 "      border-top: 1px solid #e2e8f0;\n" +
                 "      display: flex;\n" +
                 "      justify-content: space-between;\n" +
-                "      font-size: 11px;\n" +
+                "      flex-wrap: wrap;\n" +
+                "      gap: 6px 12px;\n" +
+                "      font-size: clamp(9.5px, 1.8vw, 11px);\n" +
                 "      color: #64748b;\n" +
                 "    }\n" +
                 "    .official-seal {\n" +
                 "      position: absolute;\n" +
                 "      bottom: 120px;\n" +
                 "      left: 60px;\n" +
-                "      width: 100px;\n" +
-                "      height: 100px;\n" +
+                "      width: 90px;\n" +
+                "      height: 90px;\n" +
                 "      border: 2px dashed #cbd5e1;\n" +
                 "      border-radius: 50%;\n" +
                 "      display: flex;\n" +
                 "      align-items: center;\n" +
                 "      justify-content: center;\n" +
-                "      font-size: 10px;\n" +
+                "      font-size: 9.5px;\n" +
                 "      color: #94a3b8;\n" +
                 "      text-transform: uppercase;\n" +
+                "      pointer-events: none;\n" +
+                "    }\n" +
+                "    @media screen and (max-width: 640px) {\n" +
+                "      body { padding: 8px 4px; }\n" +
+                "      .cert-border { min-height: auto; }\n" +
+                "      .official-seal {\n" +
+                "        position: static;\n" +
+                "        margin: 20px auto 10px auto;\n" +
+                "      }\n" +
+                "      .signature-section {\n" +
+                "        flex-direction: column-reverse;\n" +
+                "        align-items: center;\n" +
+                "        margin-top: 24px;\n" +
+                "        gap: 24px;\n" +
+                "      }\n" +
+                "      .signatory { width: 100%; max-width: 100%; }\n" +
+                "      .footer-audit { flex-direction: column; }\n" +
                 "    }\n" +
                 "    @media print {\n" +
-                "      body { padding: 0; background: none; }\n" +
-                "      .no-print { display: none; }\n" +
-                "      .cert-border { min-height: 98vh; }\n" +
+                "      body { padding: 0 !important; background: none !important; }\n" +
+                "      .no-print { display: none !important; }\n" +
+                "      .cert-border {\n" +
+                "        min-height: 98vh !important;\n" +
+                "        box-shadow: none !important;\n" +
+                "        padding: 30px !important;\n" +
+                "        max-width: 100% !important;\n" +
+                "      }\n" +
+                "      .official-seal {\n" +
+                "        position: absolute !important;\n" +
+                "        bottom: 120px !important;\n" +
+                "        left: 60px !important;\n" +
+                "        margin: 0 !important;\n" +
+                "      }\n" +
+                "      .signature-section {\n" +
+                "        flex-direction: row !important;\n" +
+                "        justify-content: space-between !important;\n" +
+                "        align-items: flex-end !important;\n" +
+                "        margin-top: 60px !important;\n" +
+                "      }\n" +
+                "      .signatory { width: 250px !important; }\n" +
+                "      .footer-audit {\n" +
+                "        flex-direction: row !important;\n" +
+                "        margin-top: 45px !important;\n" +
+                "      }\n" +
                 "    }\n" +
                 "  </style>\n" +
                 "</head>\n" +
@@ -331,7 +394,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService {
                 "\n" +
                 "    <div class=\"footer-audit\">\n" +
                 "      <div>Fee Paid: PHP " + String.format("%.2f", dto.getPaymentAmount()) + " | Valid Until: " + DateUtil.formatDate(dto.getValidUntil()) + "</div>\n" +
-                "      <div>Verify online: " + escapeHtml(dto.getVerificationUrl()) + "</div>\n" +
+                "      <div style=\"word-break: break-all;\">Verify online: " + escapeHtml(dto.getVerificationUrl()) + "</div>\n" +
                 "    </div>\n" +
                 "  </div>\n" +
                 "  <script>\n" +
