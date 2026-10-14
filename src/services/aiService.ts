@@ -50,6 +50,16 @@ export interface AiModelStatusResponse {
   assistantTrainedAt?: string | null;
   assistantTotalInferences?: number;
   assistantAverageLatencyMs?: number;
+  // Model 3: Philippine ID & Document Vision
+  visionModelLoaded?: boolean;
+  visionModelPath?: string;
+  visionVersion?: string;
+  visionModelSizeBytes?: number;
+  visionClasses?: string[];
+  visionAccuracyScore?: number;
+  visionTrainedAt?: string | null;
+  visionTotalInferences?: number;
+  visionAverageLatencyMs?: number;
 }
 
 export interface ChatMessage {
@@ -95,6 +105,21 @@ export interface AiGenerateRemarksResponse {
   suggestedAction: string;
 }
 
+export interface AiVisionVerificationResponse {
+  detectedClass: string;
+  classDescription: string;
+  confidence: number;
+  validDocument: boolean;
+  twoByTwo: boolean;
+  aspectRatio: number;
+  blurScore: number;
+  sharp: boolean;
+  qualityAssessment: string;
+  userMessage: string;
+  latencyMs: number;
+  classProbabilities: Record<string, number>;
+}
+
 export const aiService = {
   predictTurnaround: async (payload: AiPredictionRequest): Promise<AiPredictionResponse> => {
     const response = await api.post<AiPredictionResponse>('/ai/predict', payload);
@@ -113,6 +138,22 @@ export const aiService = {
 
   reloadAssistantModel: async (): Promise<{ reloaded: boolean; message: string }> => {
     const response = await api.post<{ reloaded: boolean; message: string }>('/ai/assistant/model-reload');
+    return response.data;
+  },
+
+  verifyDocumentVision: async (file: File): Promise<AiVisionVerificationResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post<AiVisionVerificationResponse>('/ai/vision/verify', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  getVisionStatus: async (): Promise<Record<string, any>> => {
+    const response = await api.get<Record<string, any>>('/ai/vision/status');
     return response.data;
   },
 
